@@ -89,27 +89,36 @@ class ButtonWidget extends StatelessWidget {
     super.key,
     required this.onPressed,
     this.title,
+    this.color,
   });
 
   final VoidCallback onPressed;
   final String? title;
+  final Color? color;
+
 
   @override
   Widget build(BuildContext context) {
+    Size size=MediaQuery.of(context).size;
     return Center(
       child: Padding(
         padding: EdgeInsets.only(bottom: 30),
-        child: InkWell(
+        child: GestureDetector(
           onTap: onPressed,
           child: Container(
-            color: Colors.blue,
-            width: 120,
-            height: 50,
+            decoration: BoxDecoration(
+                color: color??Colors.blue,
+                borderRadius: BorderRadius.circular(size.width*0.1)),
+
+            height: size.height*0.17,
+            width:size.width*0.4,
             child: Center(
-                child: Text(
+                child: Padding(padding: EdgeInsets.only(left: size.width*0.02,right:size.width*0.02 ),
+                  child: Text(
               title ?? "",
-              style: TextStyle(color: Colors.white),
-            )),
+              style: TextStyle(color: Colors.white,),textAlign: TextAlign.center,
+            ),
+                )),
           ),
         ),
         /* child: ElevatedButton(
