@@ -7,7 +7,7 @@ import 'package:mqtt_client/mqtt_client.dart';
 
 void main() {
   setupMqttClient();
-  setupUpdatesListener();
+  //setupUpdatesListener();
   runApp(const MyApp());
 }
 

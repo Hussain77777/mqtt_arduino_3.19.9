@@ -5,7 +5,8 @@ import 'package:mqtt_client/mqtt_server_client.dart';
 
 class MQTTClientManager {
   MqttServerClient client =
-  MqttServerClient.withPort('3.132.130.234', 'mobile_client', 4040);
+//MqttServerClient.withPort('3.132.130.234', 'mobile_client', 4040);
+  MqttServerClient.withPort('broker.emqx.io', 'mobile_client', 1883);
 
   Future<int> connect() async {
     client.logging(on: true);
@@ -16,7 +17,8 @@ class MQTTClientManager {
     client.pongCallback = pong;
 
     final connMessage =
-    MqttConnectMessage().startClean().withWillQos(MqttQos.atLeastOnce).authenticateAs('petCeption', 'D0dg3rs420#');
+  //  MqttConnectMessage().startClean().withWillQos(MqttQos.atLeastOnce).authenticateAs('petCeption', 'D0dg3rs420#');
+    MqttConnectMessage().startClean().withWillQos(MqttQos.atLeastOnce).authenticateAs('', '');
     client.connectionMessage = connMessage;
 
     try {

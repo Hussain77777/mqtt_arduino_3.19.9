@@ -56,23 +56,41 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    Size size = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Color(0xFF757172),
+     /*   leading: InkWell(
+            onTap: () {
+              Navigator.pop(context);
+            },
+            child: Icon(
+              Icons.arrow_back,
+              color: Colors.white,
+            )),*/
         title: Text(
           "Selection Mode",
+          style: TextStyle(color: Colors.white),
         ),
         centerTitle: true,
       ),
       body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          ButtonWidget(
+          SizedBox(height:size.height*0.05 ,),
+          Text(
+            "NAPL Solutions",
+            style: TextStyle(color: Colors.black,fontSize: size.width*0.08,fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height:size.height*0.05 ,),
+          ButtonWidget(color:  Color(0xFF757172),
               onPressed: () {
                 Navigator.push(context,
                     MaterialPageRoute(builder: (context) => AutomaticScreen()));
               },
               title: "Automatic"),
-          ButtonWidget(
+          ButtonWidget(color:  Color(0xFF757172),
               onPressed: () {
                 Navigator.push(context,
                     MaterialPageRoute(builder: (context) => ManualScreen()));
@@ -96,10 +114,9 @@ class ButtonWidget extends StatelessWidget {
   final String? title;
   final Color? color;
 
-
   @override
   Widget build(BuildContext context) {
-    Size size=MediaQuery.of(context).size;
+    Size size = MediaQuery.of(context).size;
     return Center(
       child: Padding(
         padding: EdgeInsets.only(bottom: 30),
@@ -107,27 +124,25 @@ class ButtonWidget extends StatelessWidget {
           onTap: onPressed,
           child: Container(
             decoration: BoxDecoration(
-                color: color??Colors.blue,
-                borderRadius: BorderRadius.circular(size.width*0.1)),
-
-            height: size.height*0.17,
-            width:size.width*0.4,
+                color: color ?? Colors.blue,
+                borderRadius: BorderRadius.circular(size.width * 0.1)),
+            height: size.height * 0.17,
+            width: size.width * 0.4,
             child: Center(
-                child: Padding(padding: EdgeInsets.only(left: size.width*0.02,right:size.width*0.02 ),
-                  child: Text(
-              title ?? "",
-              style: TextStyle(color: Colors.white,),textAlign: TextAlign.center,
-            ),
-                )),
+                child: Padding(
+              padding: EdgeInsets.only(
+                  left: size.width * 0.02, right: size.width * 0.02),
+              child: Text(
+                title ?? "",
+                style: TextStyle(
+                  color: Colors.white,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            )),
           ),
         ),
-        /* child: ElevatedButton(
-          style: ElevatedButton.styleFrom(primary: Colors.blue,elevation: 5,
-              minimumSize:Size(70, 60),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
-          onPressed:onPressed,
-          child: Text(title??"",style: TextStyle(color: Colors.white),),
-        ),*/
+
       ),
     );
   }
