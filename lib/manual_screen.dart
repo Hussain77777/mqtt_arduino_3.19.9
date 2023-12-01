@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:mqtt_arduino/automatic_screen.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -19,11 +20,21 @@ class _ManualScreenState extends State<ManualScreen> {
   MQTTClientManager mqttClientManager = MQTTClientManager();
   TextEditingController controller = TextEditingController();
 
+  bool isLoading=false;
+
   Future<void> setupMqttClient() async {
+    setState(() {
+      isLoading=true;
+    });
     await mqttClientManager.connect();
     mqttClientManager.subscribe("log");
+    setState(() {
+      isLoading=false;
+    });
+
     //  mqttClientManager.subscribe();
   }
+
 
   DataModel dataModel = DataModel();
 
@@ -48,8 +59,8 @@ class _ManualScreenState extends State<ManualScreen> {
      // print("dataModel ${dataModel.data} ${dataModel.hello}");
      // print("dataModel ${a.length}");
       //  int age = jsonMap['world'];
-
-      setState(() {});
+      if(mounted){
+      setState(() {});}
     });
   }
 
@@ -107,10 +118,12 @@ class _ManualScreenState extends State<ManualScreen> {
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
     return Scaffold(
-      bottomNavigationBar: Container(
+      bottomNavigationBar:
+      Container(
+        padding: EdgeInsets.only(top: size.height*0.01,left: size.width*0.03),
         color: Colors.black,
         width: size.width,
-        height: size.height * 0.22,
+        height: size.height * 0.38,
 
         // margin: EdgeInsets.only(left: size.width*0.1,right: size.width*0.1,),
         child: SingleChildScrollView(
@@ -129,7 +142,8 @@ class _ManualScreenState extends State<ManualScreen> {
         backgroundColor: Color(0xFF757172),
         leading: InkWell(
             onTap: () {
-              Navigator.pop(context);
+
+              Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=>AutomaticScreen()), (route) => false);
             },
             child: Icon(
               Icons.arrow_back,
@@ -143,7 +157,8 @@ class _ManualScreenState extends State<ManualScreen> {
       ),
       body: SingleChildScrollView(
         physics: NeverScrollableScrollPhysics(),
-        child: Column(
+        child: //(isLoading)?Center(child: CircularProgressIndicator()):
+        Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
@@ -160,15 +175,17 @@ class _ManualScreenState extends State<ManualScreen> {
                       onPressed: () {
                         mqttClientManager.publishMessage(
                             "manual", '{"action":"A"}');
+                        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=>AutomaticScreen()), (route) => false);
+
                       },
-                      title: 'Automatic Mode (Accessed by "A"in the Terminal)'),
+                      title: 'Automatic Mode '),
                   ButtonWidget(
                       color: Color(0xFF4472c7),
                       onPressed: () {
                         mqttClientManager.publishMessage(
                             "manual", '{"action":"U"}');
                       },
-                      title: 'Reel Up (Accessed by "U"in the Terminal)'),
+                      title: 'Reel Up '),
                 ],
               ),
             ),
@@ -184,14 +201,14 @@ class _ManualScreenState extends State<ManualScreen> {
                         mqttClientManager.publishMessage(
                             "manual", '{"action":"P"}');
                       },
-                      title: 'Pump (Accessed by "P"in the Terminal)'),
+                      title: 'Pump '),
                   ButtonWidget(
                       color: Color(0xFF4473c5),
                       onPressed: () {
                         mqttClientManager.publishMessage(
                             "manual", '{"action":"D"}');
                       },
-                      title: 'Reel Down (Accessed by "D"in the Terminal)'),
+                      title: 'Reel Down '),
                   //),
                 ],
               ),
@@ -208,7 +225,7 @@ class _ManualScreenState extends State<ManualScreen> {
                         mqttClientManager.publishMessage(
                             "manual", '{"action":"C"}');
                       },
-                      title: 'Calibration (Accessed by "C" in the Terminal)'),
+                      title: 'Calibration '),
                 ],
               ),
             ),

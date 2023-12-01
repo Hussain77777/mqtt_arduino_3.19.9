@@ -126,7 +126,7 @@ class ButtonWidget extends StatelessWidget {
             decoration: BoxDecoration(
                 color: color ?? Colors.blue,
                 borderRadius: BorderRadius.circular(size.width * 0.1)),
-            height: size.height * 0.17,
+            height: size.height * 0.12,
             width: size.width * 0.4,
             child: Center(
                 child: Padding(
@@ -136,6 +136,7 @@ class ButtonWidget extends StatelessWidget {
                 title ?? "",
                 style: TextStyle(
                   color: Colors.white,
+                  fontSize: size.width*0.045,
                 ),
                 textAlign: TextAlign.center,
               ),

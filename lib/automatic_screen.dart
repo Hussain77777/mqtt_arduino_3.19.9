@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:mqtt_arduino/manual_screen.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 
 import 'home_screen.dart';
@@ -16,9 +17,18 @@ class AutomaticScreen extends StatefulWidget {
 class _AutomaticScreenState extends State<AutomaticScreen> {
   MQTTClientManager mqttClientManager = MQTTClientManager();
 
+  bool isLoading=false;
+
   Future<void> setupMqttClient() async {
+    setState(() {
+      isLoading=true;
+    });
     await mqttClientManager.connect();
     mqttClientManager.subscribe("log");
+    setState(() {
+      isLoading=false;
+    });
+
     //  mqttClientManager.subscribe();
   }
 
@@ -43,13 +53,15 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
       // print("dataModel ${dataModel.data} ${dataModel.hello}");
       // print("dataModel ${a.length}");
       //  int age = jsonMap['world'];
-
-      setState(() {});
+//if(mounted)
+      if(mounted){
+      setState(() {});}
     });
   }
 
   @override
   void initState() {
+    print("dfnksjdnfnskdnfsndkfnksdnfk ${mqttClientManager.client.connectionStatus}");
     setupMqttClient();
     setupUpdatesListener();
     super.initState();
@@ -62,9 +74,10 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
     Size size = MediaQuery.of(context).size;
     return Scaffold(
       bottomNavigationBar: Container(
+        padding: EdgeInsets.only(top: size.height*0.01,left: size.width*0.03),
         color: Colors.black,
         width: size.width,
-        height: size.height * 0.42,
+        height: size.height * 0.45,
 
         // margin: EdgeInsets.only(left: size.width*0.1,right: size.width*0.1,),
         child: SingleChildScrollView(
@@ -81,14 +94,14 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
       ),
       appBar: AppBar(
         backgroundColor: Color(0xFF757172),
-        leading: InkWell(
+  /*      leading: InkWell(
             onTap: () {
               Navigator.pop(context);
             },
             child: Icon(
               Icons.arrow_back,
               color: Colors.white,
-            )),
+            )),*/
         title: Text(
           "Automatic Mode",
           style: TextStyle(color: Colors.white),
@@ -98,17 +111,21 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
       body: SingleChildScrollView(
         physics: NeverScrollableScrollPhysics(),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+         crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             SizedBox(height: size.height*0.05,),
-            ButtonWidget(color: Colors.orange,
-                onPressed: () {
+             ButtonWidget(color: Colors.orange,
+                onPressed: () async{
+
+
+      //     await mqttClientManager.connect();
                   mqttClientManager.publishMessage(
-                      "automatic", '{"action":"A"}');
+                      "automatic", '{"action":"M"}');
+               Navigator.push(context,MaterialPageRoute(builder: (context)=>ManualScreen()));
                 },
                 title: "Return to Manual Mode"),
-
+         //   (isLoading)?Center(child: CircularProgressIndicator()):
           ],
         ),
       ),

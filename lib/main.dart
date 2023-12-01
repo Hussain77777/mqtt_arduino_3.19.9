@@ -1,12 +1,13 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:mqtt_arduino/automatic_screen.dart';
 import 'package:mqtt_arduino/home_screen.dart';
 import 'package:mqtt_arduino/mqtt.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 
 void main() {
-  setupMqttClient();
+  //setupMqttClient();
   //setupUpdatesListener();
   runApp(const MyApp());
 }
@@ -54,7 +55,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: HomeScreen(),
+      home: AutomaticScreen(),
     );
   }
 }
