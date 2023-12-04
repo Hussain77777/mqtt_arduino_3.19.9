@@ -4,8 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:mqtt_arduino/automatic_screen.dart';
 import 'package:mqtt_arduino/manual_screen.dart';
 import 'package:mqtt_client/mqtt_client.dart';
+import 'package:web_socket_channel/io.dart';
+import 'package:web_socket_client/web_socket_client.dart';
 
 import 'mqtt.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:web_socket_channel/status.dart' as status;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -23,6 +27,32 @@ class _HomeScreenState extends State<HomeScreen> {
     //  mqttClientManager.subscribe();
   }
 
+  Future websocket() async {
+
+    final uri = Uri.parse('ws://192.168.0.109:4000');
+    const backoff = ConstantBackoff(Duration(seconds: 1));
+    final socket = WebSocket(uri, backoff: backoff);
+
+    // Listen for changes in the connection state.
+    socket.connection.state;
+    print("object1111 ${socket.connection}");
+
+    socket.connection.listen((state) => print('state: "$state"'));
+    socket.send("hello from flutter");
+
+
+    print("object222222222 ${socket.connection.state.toString()}");
+    socket.messages.listen((message) {
+      print('message:111111 "$message"');
+
+
+    });
+
+
+
+  }
+
+
   void setupUpdatesListener() {
     mqttClientManager
         .getMessagesStream()!
@@ -30,18 +60,11 @@ class _HomeScreenState extends State<HomeScreen> {
       final recMess = c![0].payload as MqttPublishMessage;
       String pt =
           MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
-      //jsonDecode(pt["light_on_time"]);
       print('MQTTClient::Message received on topic: <${c[0].topic}> is $pt\n');
-      //    print('MQTTClient::Message received on topic: <${c[0].topic}> is ${pt['light_on_time']}\n');
       print('MQTTClient::Message received on topic: <${c[0].topic}> is $pt\n');
       print(
           'MQTTClient::Message received on topic: 1233<${c[0].payload}> is $pt\n');
       Map<String, dynamic> jsonMap = jsonDecode(pt);
-      /* print(
-          'MQTTClient::Message received on topic: 12334 ${ReadingsModel.fromJson(jsonMap)}');
-      readingsModel = ReadingsModel.fromJson(jsonMap);
-*/
-      //  int age = jsonMap['world'];
 
       setState(() {});
     });
@@ -49,8 +72,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
-    setupMqttClient();
-    setupUpdatesListener();
+    websocket();
+
     super.initState();
   }
 
@@ -60,7 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color(0xFF757172),
-     /*   leading: InkWell(
+        /*   leading: InkWell(
             onTap: () {
               Navigator.pop(context);
             },
@@ -78,19 +101,29 @@ class _HomeScreenState extends State<HomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          SizedBox(height:size.height*0.05 ,),
+          SizedBox(
+            height: size.height * 0.05,
+          ),
           Text(
             "NAPL Solutions",
-            style: TextStyle(color: Colors.black,fontSize: size.width*0.08,fontWeight: FontWeight.bold),
+            style: TextStyle(
+                color: Colors.black,
+                fontSize: size.width * 0.08,
+                fontWeight: FontWeight.bold),
           ),
-          SizedBox(height:size.height*0.05 ,),
-          ButtonWidget(color:  Color(0xFF757172),
+          SizedBox(
+            height: size.height * 0.05,
+          ),
+          ButtonWidget(
+              color: Color(0xFF757172),
               onPressed: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => AutomaticScreen()));
+                //socket.send("sfsdfsdfsdfsdfsdf");
+                /*  Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => AutomaticScreen()));*/
               },
               title: "Automatic"),
-          ButtonWidget(color:  Color(0xFF757172),
+          ButtonWidget(
+              color: Color(0xFF757172),
               onPressed: () {
                 Navigator.push(context,
                     MaterialPageRoute(builder: (context) => ManualScreen()));
@@ -136,14 +169,13 @@ class ButtonWidget extends StatelessWidget {
                 title ?? "",
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: size.width*0.045,
+                  fontSize: size.width * 0.045,
                 ),
                 textAlign: TextAlign.center,
               ),
             )),
           ),
         ),
-
       ),
     );
   }

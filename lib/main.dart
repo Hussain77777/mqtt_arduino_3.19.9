@@ -7,6 +7,7 @@ import 'package:mqtt_arduino/mqtt.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 
 void main() {
+
   //setupMqttClient();
   //setupUpdatesListener();
   runApp(const MyApp());
@@ -55,7 +56,8 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: AutomaticScreen(),
+  //    home: AutomaticScreen(),
+    home: HomeScreen(),
     );
   }
 }
