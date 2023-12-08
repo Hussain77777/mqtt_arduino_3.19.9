@@ -28,30 +28,22 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future websocket() async {
-
-    final uri = Uri.parse('ws://192.168.0.109:4000');
+    final uri = Uri.parse('ws://192.168.0.107:4000/');
     const backoff = ConstantBackoff(Duration(seconds: 1));
     final socket = WebSocket(uri, backoff: backoff);
-
+    print("object1111 ${socket.connection.state}");
     // Listen for changes in the connection state.
     socket.connection.state;
-    print("object1111 ${socket.connection}");
 
-    socket.connection.listen((state) => print('state: "$state"'));
+
+    socket.connection.listen((state) => print('state:11 "${state.toString()}"'));
     socket.send("hello from flutter");
-
 
     print("object222222222 ${socket.connection.state.toString()}");
     socket.messages.listen((message) {
       print('message:111111 "$message"');
-
-
     });
-
-
-
   }
-
 
   void setupUpdatesListener() {
     mqttClientManager
@@ -122,6 +114,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     MaterialPageRoute(builder: (context) => AutomaticScreen()));*/
               },
               title: "Automatic"),
+
           ButtonWidget(
               color: Color(0xFF757172),
               onPressed: () {

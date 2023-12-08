@@ -5,59 +5,104 @@ import 'package:mqtt_arduino/automatic_screen.dart';
 import 'package:mqtt_arduino/home_screen.dart';
 import 'package:mqtt_arduino/mqtt.dart';
 import 'package:mqtt_client/mqtt_client.dart';
+import 'package:flutter/material.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:web_socket_client/web_socket_client.dart';
+
+import 'app_utils.dart';
+
+WebSocket? socket;
+
+Future websocket() async {
+  final uri = Uri.parse('ws://192.168.0.106:4000/');
+  const backoff = ConstantBackoff(Duration(seconds: 1));
+  socket = WebSocket(uri, backoff: backoff);
+  print("object1111 ${socket?.connection.state}");
+  // Listen for changes in the connection state.
+
+  socket?.connection.listen((state) {
+    print(
+      'state:11 "$state"',
+    );
+
+    if (state.toString() == "Instance of 'Connected'") {
+      //AppUtils.showflushBar("Connected",context);
+      socket?.messages.listen((message) {
+        //logData.add(message.toString());
+        print('message:11111122222 "$message"');
+        /*   setState(() {
+
+        });*/
+      });
+    }
+    if (state.toString() == "Instance of 'Disconnected'") {
+      //    AppUtils.showflushBar("Disconnected",context);
+    }
+  });
+  //  socket.send("hello from flutter");
+}
 
 void main() {
-
-  //setupMqttClient();
-  //setupUpdatesListener();
   runApp(const MyApp());
+  websocket();
 }
 
-MQTTClientManager mqttClientManager = MQTTClientManager();
-Future<void> setupMqttClient() async {
-  await mqttClientManager.connect();
-  mqttClientManager.subscribe("pubTopic");
-  //  mqttClientManager.subscribe();
-}
-
-void setupUpdatesListener() {
-  mqttClientManager
-      .getMessagesStream()!
-      .listen((List<MqttReceivedMessage<MqttMessage?>>? c) {
-    final recMess = c![0].payload as MqttPublishMessage;
-    String pt =
-    MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
-    //jsonDecode(pt["light_on_time"]);
-    print('MQTTClient::Message received on topic: <${c[0].topic}> is $pt\n');
-    //    print('MQTTClient::Message received on topic: <${c[0].topic}> is ${pt['light_on_time']}\n');
-    print('MQTTClient::Message received on topic: <${c[0].topic}> is $pt\n');
-    print(
-        'MQTTClient::Message received on topic: 1233<${c[0].payload}> is $pt\n');
-    Map<String, dynamic> jsonMap = jsonDecode(pt);
-    /* print(
-          'MQTTClient::Message received on topic: 12334 ${ReadingsModel.fromJson(jsonMap)}');
-      readingsModel = ReadingsModel.fromJson(jsonMap);
-*/
-    //  int age = jsonMap['world'];
-
-    //setState(() {});
-  });
-}
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  WebSocket? socket;
+
+  Future websocket() async {
+    final uri = Uri.parse('ws://192.168.0.106:4000/');
+    const backoff = ConstantBackoff(Duration(seconds: 1));
+    socket = WebSocket(uri, backoff: backoff);
+    print("object1111 ${socket?.connection.state}");
+    // Listen for changes in the connection state.
+
+    socket?.connection.listen((state) {
+      print(
+        'state:11 "$state"',
+      );
+
+      if (state.toString() == "Instance of 'Connected'") {
+        AppUtils.showflushBar("Connected",context);
+socket?.send("aaaaaaaaaaaaaaaaaaaaaa");
+        AppUtils.showflushBar("Connected send",context);
+        socket?.messages.listen((message) {
+          logData.add(message.toString());
+          print('message:11111122222 "$message"');
+          /*   setState(() {
+
+        });*/
+        });
+      }
+      if (state.toString() == "Instance of 'Disconnected'") {
+            AppUtils.showflushBar("Disconnected",context);
+      }
+    });
+  }
+List<String>logData=[];
+  void initState(){
+ //   websocket();
+    super.initState();
+  }
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(debugShowCheckedModeBanner: false,
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: ThemeData(
-
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-  //    home: AutomaticScreen(),
-    home: HomeScreen(),
+      home: AutomaticScreen(socket:socket ,logList: logData),
+      //home: HomeScreen(),
     );
   }
 }
