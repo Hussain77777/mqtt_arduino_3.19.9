@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:mqtt_arduino/manual_screen.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:web_socket_client/web_socket_client.dart';
@@ -11,11 +13,12 @@ import 'home_screen.dart';
 import 'mqtt.dart';
 
 class AutomaticScreen extends StatefulWidget {
-  const AutomaticScreen(
-      {super.key, required this.socket, required this.logList});
+  const AutomaticScreen({
+    super.key,
+    required this.device,
+  });
 
-  final WebSocket? socket;
-  final List<String>? logList;
+  final BluetoothDevice? device;
 
   @override
   State<AutomaticScreen> createState() => _AutomaticScreenState();
@@ -23,60 +26,26 @@ class AutomaticScreen extends StatefulWidget {
 
 class _AutomaticScreenState extends State<AutomaticScreen> {
   AppUtils util = AppUtils();
-
-  WebSocket? socket;
-
-  Future websocket() async {
-    final uri = Uri.parse('ws://192.168.0.103:4000/');
-    const backoff = ConstantBackoff(Duration(seconds: 1));
-    socket = WebSocket(uri, backoff: backoff);
-    print("object1111 ${socket?.connection.state}");
-    // Listen for changes in the connection state.
-
-    socket?.connection.listen((state) {
-      print(
-        'state:11 "$state"',
-      );
-
-      if (state.toString() == "Instance of 'Connected'") {
-        AppUtils.showflushBar("Connected", context);
-
-        socket?.send("aaaaaaaaaaaaaaaaaaaaaaaa");
-        AppUtils.showflushBar("Connected send", context);
-        socket?.messages.listen((message) {
-          logData.add(message.toString());
-          print('message:11111122222 "$message"');
-          setState(() {
-            logData.add(message);
-          });
-        });
-      }
-      if (state.toString() == "Instance of 'Reconnected'") {
-        AppUtils.showflushBar("Connected", context);
-
-        socket?.send("Re aaaaaaaaaaaaaaaaaaaaaaaa");
-        AppUtils.showflushBar("ReConnected send", context);
-        socket?.messages.listen((message) {
-          logData.add(message.toString());
-          print('message:11111122222 "$message"');
-          setState(() {
-            logData.add(message);
-          });
-        });
-      }
-      if (state.toString() == "Instance of 'Disconnected'") {
-        AppUtils.showflushBar("Disconnected", context);
-      }
-    });
-  }
+  BluetoothCharacteristic? targetCharacterstic;
 
   List<String> a = [];
 
+  List<BluetoothService>? services;
+  checkDeviceStatus() {
+    var subscription = widget.device?.connectionState
+        .listen((BluetoothConnectionState state) async {
+      if (state == BluetoothConnectionState.disconnected) {
+        //   widget.device?.connect();
+        AppUtils.showflushBar(
+            "Your Device disConnected ${widget.device?.platformName}", context);
+      }
+      if (state == BluetoothConnectionState.connected) {}
+    });
+  }
+
   @override
   void initState() {
-    logData;
-    websocket();
-
+    checkDeviceStatus();
     super.initState();
   }
 
@@ -84,21 +53,28 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
 
   @override
   Widget build(BuildContext context) {
-    Size size = MediaQuery
-        .of(context)
-        .size;
+    Size size = MediaQuery.of(context).size;
     return Scaffold(
-      bottomNavigationBar: LogWidget(size: size, logData: logData),
+      bottomNavigationBar: LogWidget(
+        logData: logData,
+        size: size,
+      ),
       appBar: AppBar(
         backgroundColor: Color(0xFF757172),
-        /*      leading: InkWell(
+        leading: InkWell(
             onTap: () {
               Navigator.pop(context);
             },
             child: Icon(
               Icons.arrow_back,
               color: Colors.white,
-            )),*/
+            )),
+        actions: [
+          Icon(
+            Icons.switch_right_outlined,
+            color: Colors.white,
+          )
+        ],
         title: Text(
           "Automatic Mode",
           style: TextStyle(color: Colors.white),
@@ -117,17 +93,31 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
             ButtonWidget(
                 color: Colors.orange,
                 onPressed: () async {
-                  //     await mqttClientManager.connect();
-                  /*  mqttClientManager.publishMessage(
-                      "automatic", '{"action":"M"}'
-                  );*/
+                  services = await widget.device?.discoverServices();
+
+                  services?.forEach((service) async {
+                    print("service ${service.characteristics}");
+
+                    if (service.uuid.toString() ==
+                        "4fafc201-1fb5-459e-8fcc-c5c9c331914b") {
+                      service.characteristics.forEach((characteristics) {
+                        if (characteristics.uuid.toString() ==
+                            "930a6b92-43f9-11ee-be56-0242ac120002") {
+                          targetCharacterstic = characteristics;
+                          setState(() {});
+                        }
+                      });
+                    }
+                  });
+                  List<int> bytes = utf8.encode("A");
+                  await targetCharacterstic?.write(bytes);
                   Navigator.push(
                       context,
                       MaterialPageRoute(
                           builder: (context) =>
                               ManualScreen(
-                                logList: logData,
-                                socket: widget.socket,
+                                logList: logData,targetCharacterstic: targetCharacterstic,
+
                               )));
                 },
                 title: "Return to Manual Mode"),
@@ -137,6 +127,19 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
         ),
       ),
     );
+  }
+
+  StreamSubscription<List<int>>? buildLogListener() {
+    return targetCharacterstic?.lastValueStream.listen((value) {
+      print("stringValue  $value");
+      // Decode the value to string
+      String stringValue = utf8.decode(value);
+      print("stringValue  $stringValue");
+      logData.add(stringValue);
+      if (mounted) {
+        setState(() {});
+      }
+    });
   }
 }
 
@@ -154,7 +157,7 @@ class LogWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding:
-      EdgeInsets.only(top: size.height * 0.01, left: size.width * 0.03),
+          EdgeInsets.only(top: size.height * 0.01, left: size.width * 0.03),
       color: Colors.black,
       width: size.width,
       height: size.height * 0.45,
@@ -165,7 +168,7 @@ class LogWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: List.generate(logData.length, (index) {
             return Text(
-              "${logData[index]} $index",
+              "${logData[index]} ",
               style: TextStyle(color: Colors.white),
             );
           }),

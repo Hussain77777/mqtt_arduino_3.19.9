@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:mqtt_arduino/automatic_screen.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,9 +14,11 @@ import 'home_screen.dart';
 import 'mqtt.dart';
 
 class ManualScreen extends StatefulWidget {
-  const ManualScreen({super.key, this.socket, this.logList});
-  final WebSocket? socket;
+   ManualScreen({super.key, this.logList, this.device, this.targetCharacterstic});
+
   final List<String>? logList;
+  final BluetoothDevice? device;
+   BluetoothCharacteristic? targetCharacterstic;
   @override
   State<ManualScreen> createState() => _ManualScreenState();
 }
@@ -22,52 +26,57 @@ class ManualScreen extends StatefulWidget {
 class _ManualScreenState extends State<ManualScreen> {
   MQTTClientManager mqttClientManager = MQTTClientManager();
   TextEditingController controller = TextEditingController();
-
+  BluetoothCharacteristic? targetCharacterstic11;
   bool isLoading = false;
 
   List<DataModel> a = [];
   List<String> logData = [];
-
-  @override
-  void initState() {
-    logData=widget.logList??[];
-    websocket();
-    super.initState();
-  }
-  AppUtils util=AppUtils();
-
-
-  Future websocket() async {
-
-    print("object1111 ${widget.socket?.connection.state}");
-    // Listen for changes in the connection state.
-
-
-
-    widget.socket?.connection.listen((state) {
-
-      print('state:11 "$state"',);
-
-      if(state.toString()=="Instance of 'Connected'"){
-       // AppUtils.showflushBar("Connected",context);
-        widget.socket?.messages.listen((message) {
-
-          logData.add(message.toString());
-          print('message:11111122222 "$message"');
-          setState(() {
-
-          });
-        });
+  checkDeviceStatus(){
+    var subscription = widget.device?.connectionState
+        .listen((BluetoothConnectionState state) async {
+      if (state == BluetoothConnectionState.disconnected) {
+        //   widget.device?.connect();
+        AppUtils.showflushBar(
+            "Your Device disConnected ${widget.device?.platformName}",
+            context);
       }
-      if(state.toString()=="Instance of 'Disconnected'"){
-        AppUtils.showflushBar("Disconnected",context);
+      if (state == BluetoothConnectionState.connected) {
+
       }
     });
-    //  socket.send("hello from flutter");
-
-
-
   }
+  @override
+  void initState() {
+    logData = widget.logList ?? [];
+    checkDeviceStatus();
+    logListener();
+    super.initState();
+  }
+  logListener() async {
+    if(widget.device?.isConnected??false){
+      List<BluetoothService>? services =
+          await widget.device?.discoverServices();
+    widget.targetCharacterstic?.setNotifyValue(false);
+      widget.targetCharacterstic?.lastValueStream.listen((value) {
+        print("stringValue11  $value");
+        // Decode the value to string
+        String stringValue = utf8.decode(value);
+        print("stringValue11  $stringValue");
+        logData.add(stringValue);
+        if (mounted) {
+          setState(() {});
+        }
+      });
+    }
+    else{
+      AppUtils.showflushBar(
+          "Your Device is not connected to any hardware",
+          context);
+    }
+  }
+  AppUtils util = AppUtils();
+
+
   @override
   void dispose() {
     print("sd fmsdf sdfsdf");
@@ -84,7 +93,7 @@ class _ManualScreenState extends State<ManualScreen> {
         backgroundColor: Color(0xFF757172),
         leading: InkWell(
             onTap: () {
-            /*  Navigator.pushAndRemoveUntil(
+              /*  Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (context) => AutomaticScreen()),
                   (route) => false);*/
@@ -119,7 +128,7 @@ class _ManualScreenState extends State<ManualScreen> {
                       onPressed: () {
                         mqttClientManager.publishMessage(
                             "manual", '{"action":"A"}');
-                   /*     Navigator.pushAndRemoveUntil(
+                        /*     Navigator.pushAndRemoveUntil(
                             context,
                             MaterialPageRoute(
                                 builder: (context) => AutomaticScreen()),
@@ -191,5 +200,17 @@ class _ManualScreenState extends State<ManualScreen> {
         ),
       ),
     );
+  }
+  StreamSubscription<List<int>>? buildLogListener() {
+    return widget.targetCharacterstic?.lastValueStream.listen((value) {
+      print("stringValue  $value");
+      // Decode the value to string
+      String stringValue = utf8.decode(value);
+      print("stringValue  $stringValue");
+      logData.add(stringValue);
+      if(mounted){
+       setState(() {});
+      }
+    });
   }
 }
