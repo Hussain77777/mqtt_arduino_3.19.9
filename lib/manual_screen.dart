@@ -10,15 +10,18 @@ import 'package:web_socket_client/web_socket_client.dart';
 
 import 'DataModel.dart';
 import 'app_utils.dart';
+import 'bluetooth.dart';
 import 'home_screen.dart';
 import 'mqtt.dart';
 
 class ManualScreen extends StatefulWidget {
-   ManualScreen({super.key, this.logList, this.device, this.targetCharacterstic});
+  ManualScreen(
+      {super.key, this.logList, this.device, this.targetCharacterstic});
 
   final List<String>? logList;
   final BluetoothDevice? device;
-   BluetoothCharacteristic? targetCharacterstic;
+  BluetoothCharacteristic? targetCharacterstic;
+
   @override
   State<ManualScreen> createState() => _ManualScreenState();
 }
@@ -31,20 +34,24 @@ class _ManualScreenState extends State<ManualScreen> {
 
   List<DataModel> a = [];
   List<String> logData = [];
-  checkDeviceStatus(){
+
+  checkDeviceStatus() {
     var subscription = widget.device?.connectionState
         .listen((BluetoothConnectionState state) async {
       if (state == BluetoothConnectionState.disconnected) {
+        Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => BleScanner()),
+                (route) => false);
+
         //   widget.device?.connect();
         AppUtils.showflushBar(
-            "Your Device disConnected ${widget.device?.platformName}",
-            context);
+            "Your Device disConnected ${widget.device?.platformName}", context);
       }
-      if (state == BluetoothConnectionState.connected) {
-
-      }
+      if (state == BluetoothConnectionState.connected) {}
     });
   }
+
   @override
   void initState() {
     logData = widget.logList ?? [];
@@ -52,11 +59,12 @@ class _ManualScreenState extends State<ManualScreen> {
     logListener();
     super.initState();
   }
+
   logListener() async {
-    if(widget.device?.isConnected??false){
+    if (widget.device?.isConnected ?? false) {
       List<BluetoothService>? services =
           await widget.device?.discoverServices();
-    widget.targetCharacterstic?.setNotifyValue(false);
+      widget.targetCharacterstic?.setNotifyValue(true);
       widget.targetCharacterstic?.lastValueStream.listen((value) {
         print("stringValue11  $value");
         // Decode the value to string
@@ -67,15 +75,13 @@ class _ManualScreenState extends State<ManualScreen> {
           setState(() {});
         }
       });
-    }
-    else{
+    } else {
       AppUtils.showflushBar(
-          "Your Device is not connected to any hardware",
-          context);
+          "Your Device is not connected to any hardware", context);
     }
   }
-  AppUtils util = AppUtils();
 
+  AppUtils util = AppUtils();
 
   @override
   void dispose() {
@@ -90,13 +96,32 @@ class _ManualScreenState extends State<ManualScreen> {
     return Scaffold(
       bottomNavigationBar: LogWidget(size: size, logData: logData),
       appBar: AppBar(
+        actions: [
+          InkWell(
+            onTap: () {
+              widget.device?.disconnect();
+              Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => BleScanner()),
+                      (route) => false);
+              AppUtils.showflushBar(
+                  "Device Disconnected SuccessFully", context);
+            },
+            child: Padding(
+              padding: EdgeInsets.only(right: 10),
+              child: Text(
+                "Disconnect",
+                style:
+                TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+              ),
+            ),
+          ),
+        ],
         backgroundColor: Color(0xFF757172),
         leading: InkWell(
             onTap: () {
-              /*  Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => AutomaticScreen()),
-                  (route) => false);*/
+              Navigator.pop(context);
+
             },
             child: Icon(
               Icons.arrow_back,
@@ -117,7 +142,7 @@ class _ManualScreenState extends State<ManualScreen> {
           children: [
             Padding(
               padding: EdgeInsets.only(
-                  top: size.height * 0.05,
+                  top: size.height * 0.02,
                   left: size.width * 0.07,
                   right: size.width * 0.07),
               child: Row(
@@ -125,21 +150,32 @@ class _ManualScreenState extends State<ManualScreen> {
                 children: [
                   ButtonWidget(
                       color: Color(0xFF70ad46),
-                      onPressed: () {
-                        mqttClientManager.publishMessage(
-                            "manual", '{"action":"A"}');
-                        /*     Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => AutomaticScreen()),
-                            (route) => false);*/
+                      onPressed: () async {
+                        if (widget.device?.isConnected ?? false) {
+                          List<int> bytes = utf8.encode("A");
+                          await widget.targetCharacterstic?.write(bytes);
+Navigator.pop(context);
+                          // buildLogListener();
+                        } else {
+                          AppUtils.showflushBar(
+                              "Your Device is not connected to any hardware",
+                              context);
+                        }
                       },
                       title: 'Automatic Mode '),
                   ButtonWidget(
                       color: Color(0xFF4472c7),
-                      onPressed: () {
-                        mqttClientManager.publishMessage(
-                            "manual", '{"action":"U"}');
+                      onPressed: () async {
+                        if (widget.device?.isConnected ?? false) {
+                          List<int> bytes = utf8.encode("U");
+                          await widget.targetCharacterstic?.write(bytes);
+
+                          // buildLogListener();
+                        } else {
+                          AppUtils.showflushBar(
+                              "Your Device is not connected to any hardware",
+                              context);
+                        }
                       },
                       title: 'Reel Up '),
                 ],
@@ -153,16 +189,32 @@ class _ManualScreenState extends State<ManualScreen> {
                 children: [
                   ButtonWidget(
                       color: Color(0xFFfe0000),
-                      onPressed: () {
-                        mqttClientManager.publishMessage(
-                            "manual", '{"action":"P"}');
+                      onPressed: () async {
+                        if (widget.device?.isConnected ?? false) {
+                          List<int> bytes = utf8.encode("P");
+                          await widget.targetCharacterstic?.write(bytes);
+
+                          // buildLogListener();
+                        } else {
+                          AppUtils.showflushBar(
+                              "Your Device is not connected to any hardware",
+                              context);
+                        }
                       },
                       title: 'Pump '),
                   ButtonWidget(
                       color: Color(0xFF4473c5),
-                      onPressed: () {
-                        mqttClientManager.publishMessage(
-                            "manual", '{"action":"D"}');
+                      onPressed: () async {
+                        if (widget.device?.isConnected ?? false) {
+                          List<int> bytes = utf8.encode("D");
+                          await widget.targetCharacterstic?.write(bytes);
+
+                          // buildLogListener();
+                        } else {
+                          AppUtils.showflushBar(
+                              "Your Device is not connected to any hardware",
+                              context);
+                        }
                       },
                       title: 'Reel Down '),
                   //),
@@ -173,34 +225,47 @@ class _ManualScreenState extends State<ManualScreen> {
               padding: EdgeInsets.only(
                   left: size.width * 0.07, right: size.width * 0.07),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   ButtonWidget(
                       color: Color(0xFFee7d31),
-                      onPressed: () {
-                        mqttClientManager.publishMessage(
-                            "manual", '{"action":"C"}');
+                      onPressed: () async {
+                        if (widget.device?.isConnected ?? false) {
+                          List<int> bytes = utf8.encode("C");
+                          await widget.targetCharacterstic?.write(bytes);
+
+                          // buildLogListener();
+                        } else {
+                          AppUtils.showflushBar(
+                              "Your Device is not connected to any hardware",
+                              context);
+                        }
                       },
                       title: 'Calibration '),
+                  ButtonWidget(
+                      color: Color(0xFFee7d31),
+                      onPressed: () async {
+                        if (widget.device?.isConnected ?? false) {
+                          List<int> bytes = utf8.encode("T");
+                          await widget.targetCharacterstic?.write(bytes);
+
+                          // buildLogListener();
+                        } else {
+                          AppUtils.showflushBar(
+                              "Your Device is not connected to any hardware",
+                              context);
+                        }
+                      },
+                      title: 'Trouble  Shooting '),
                 ],
               ),
             ),
-
-            /*    TextFormField(
-              maxLines: 7,
-              readOnly: true,
-              decoration: InputDecoration(
-                fillColor: Colors.black,
-                filled: true,
-              ),
-              controller: controller,
-              style: TextStyle(color: Colors.white),
-            )*/
           ],
         ),
       ),
     );
   }
+
   StreamSubscription<List<int>>? buildLogListener() {
     return widget.targetCharacterstic?.lastValueStream.listen((value) {
       print("stringValue  $value");
@@ -208,8 +273,8 @@ class _ManualScreenState extends State<ManualScreen> {
       String stringValue = utf8.decode(value);
       print("stringValue  $stringValue");
       logData.add(stringValue);
-      if(mounted){
-       setState(() {});
+      if (mounted) {
+        setState(() {});
       }
     });
   }

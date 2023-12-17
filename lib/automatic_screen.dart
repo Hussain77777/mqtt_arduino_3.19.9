@@ -9,6 +9,7 @@ import 'package:mqtt_client/mqtt_client.dart';
 import 'package:web_socket_client/web_socket_client.dart';
 
 import 'app_utils.dart';
+import 'bluetooth.dart';
 import 'home_screen.dart';
 import 'mqtt.dart';
 
@@ -31,22 +32,34 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
   List<String> a = [];
 
   List<BluetoothService>? services;
+
   checkDeviceStatus() {
     var subscription = widget.device?.connectionState
         .listen((BluetoothConnectionState state) async {
       if (state == BluetoothConnectionState.disconnected) {
+        Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => BleScanner()),
+            (route) => false);
         //   widget.device?.connect();
         AppUtils.showflushBar(
-            "Your Device disConnected ${widget.device?.platformName}", context);
+            "Your Device disconnected ${widget.device?.platformName}", context);
       }
       if (state == BluetoothConnectionState.connected) {}
     });
   }
 
+  StreamSubscription? _notificationSubscription;
+
   @override
   void initState() {
     checkDeviceStatus();
     super.initState();
+  }
+
+  void dispose() {
+    targetCharacterstic?.setNotifyValue(false);
+    super.dispose();
   }
 
   List<String> logData = [];
@@ -70,10 +83,25 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
               color: Colors.white,
             )),
         actions: [
-          Icon(
-            Icons.switch_right_outlined,
-            color: Colors.white,
-          )
+          InkWell(
+            onTap: () {
+              widget.device?.disconnect();
+              Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => BleScanner()),
+                  (route) => false);
+              AppUtils.showflushBar(
+                  "Device Disconnected SuccessFully", context);
+            },
+            child: Padding(
+              padding: EdgeInsets.only(right: 10),
+              child: Text(
+                "Disconnect",
+                style:
+                    TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+              ),
+            ),
+          ),
         ],
         title: Text(
           "Automatic Mode",
@@ -93,32 +121,49 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
             ButtonWidget(
                 color: Colors.orange,
                 onPressed: () async {
-                  services = await widget.device?.discoverServices();
+                  print("vvvvvvvvvvvvvvvvvv");
+                  if (widget.device?.isConnected ?? false) {
+                    services = await widget.device?.discoverServices();
 
-                  services?.forEach((service) async {
-                    print("service ${service.characteristics}");
+                    services?.forEach((service) async {
+                      print("service ${service.characteristics}");
 
-                    if (service.uuid.toString() ==
-                        "4fafc201-1fb5-459e-8fcc-c5c9c331914b") {
-                      service.characteristics.forEach((characteristics) {
-                        if (characteristics.uuid.toString() ==
-                            "930a6b92-43f9-11ee-be56-0242ac120002") {
-                          targetCharacterstic = characteristics;
-                          setState(() {});
-                        }
-                      });
-                    }
-                  });
-                  List<int> bytes = utf8.encode("A");
-                  await targetCharacterstic?.write(bytes);
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) =>
-                              ManualScreen(
-                                logList: logData,targetCharacterstic: targetCharacterstic,
+                      if (service.uuid.toString() ==
+                          // "4fafc201-1fb5-459e-8fcc-c5c9c331914b")
+                          "fff0") {
+                        service.characteristics.forEach((characteristics) {
+                          if (characteristics.uuid.toString() ==
+                              // "beb5483e-36e1-4688-b7f5-ea07361b26a8")
+                              "fff1") {
+                            targetCharacterstic = characteristics;
+                            targetCharacterstic?.setNotifyValue(true);
+                            if (mounted) {
+                              // setState(() {});
+                            }
+                          }
+                        });
+                      }
+                    });
+                    List<int> bytes = utf8.encode("M");
+                    await targetCharacterstic?.write(bytes);
 
-                              )));
+                    buildLogListener();
+
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => ManualScreen(
+                                    logList: logData,
+                                    device: widget.device,
+                                    targetCharacterstic: targetCharacterstic,
+                                  ))); // Your state change code here
+                    });
+                  } else {
+                    AppUtils.showflushBar(
+                        "Your Device is not connected to any hardware",
+                        context);
+                  }
                 },
                 title: "Return to Manual Mode"),
 

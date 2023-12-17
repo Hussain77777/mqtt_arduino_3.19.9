@@ -14,7 +14,7 @@ class AppUtils {
           margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           padding: const EdgeInsets.all(15),
           message: msg,
-          duration: const Duration(seconds: 5),
+          duration: const Duration(seconds: 2),
           flushbarPosition: FlushbarPosition.TOP,
           reverseAnimationCurve: Curves.easeInOut,
           positionOffset: 20,
