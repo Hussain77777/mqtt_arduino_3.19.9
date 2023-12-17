@@ -46,13 +46,14 @@ class _BleScannerState extends State<BleScanner> {
     FlutterBluePlus.scanResults.listen((results) {
       for (ScanResult result in results) {
         if (!devices.contains(result.device)) {
+          if(mounted){
           setState(() {
             if (result.device.platformName.contains("NAPL")) {
               devices.add(result.device);
               isDeviceAvailable = true;
             }
           });
-        }
+        }}
       }
     });
     if (mounted) {
@@ -91,9 +92,10 @@ class _BleScannerState extends State<BleScanner> {
       appBar: AppBar(
         leading: !isScanning?Container():IconButton(onPressed: (){
           FlutterBluePlus.stopScan();
+          if(mounted){
           setState(() {
             isScanning=false;devices.clear();isDeviceAvailable=false;
-          });
+          });}
         }, icon: Icon(Icons.arrow_back,color: Colors.white,)),
         backgroundColor: Color(0xFF757172),
 
