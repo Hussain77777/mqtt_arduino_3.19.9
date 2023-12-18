@@ -33,7 +33,7 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
 
   List<BluetoothService>? services;
 
-  checkDeviceStatus() {
+  checkDeviceStatus() async {
     var subscription = widget.device?.connectionState
         .listen((BluetoothConnectionState state) async {
       if (state == BluetoothConnectionState.disconnected) {
@@ -45,8 +45,37 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
         AppUtils.showflushBar(
             "Your Device disconnected ${widget.device?.platformName}", context);
       }
+
       if (state == BluetoothConnectionState.connected) {}
     });
+    if (widget.device?.isConnected ?? false) {
+      services = await widget.device?.discoverServices();
+
+      services?.forEach((service) async {
+        print("service ${service.characteristics}");
+
+        if (service.uuid.toString() ==
+            // "4fafc201-1fb5-459e-8fcc-c5c9c331914b")
+            "fff0") {
+          service.characteristics.forEach((characteristics) {
+            if (characteristics.uuid.toString() ==
+                // "beb5483e-36e1-4688-b7f5-ea07361b26a8")
+                "fff1") {
+              targetCharacterstic = characteristics;
+              targetCharacterstic?.setNotifyValue(true);
+              if (mounted) {
+                // setState(() {});
+              }
+            }
+          });
+        }
+      });
+
+
+    buildLogListener();
+
+
+  }
   }
 
   StreamSubscription? _notificationSubscription;
@@ -123,7 +152,10 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
                 onPressed: () async {
                   print("vvvvvvvvvvvvvvvvvv");
                   if (widget.device?.isConnected ?? false) {
-                    services = await widget.device?.discoverServices();
+                    List<int> bytes = utf8.encode("M");
+                    await targetCharacterstic?.write(bytes);
+
+                    /*         services = await widget.device?.discoverServices();
 
                     services?.forEach((service) async {
                       print("service ${service.characteristics}");
@@ -147,7 +179,7 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
                     List<int> bytes = utf8.encode("M");
                     await targetCharacterstic?.write(bytes);
 
-                    buildLogListener();
+                    buildLogListener();*/
 
                     WidgetsBinding.instance.addPostFrameCallback((_) {
                       Navigator.push(
