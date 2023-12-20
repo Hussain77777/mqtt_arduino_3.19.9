@@ -2,8 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:auto_scroll/auto_scroll.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:intl/intl.dart';
 import 'package:mqtt_arduino/manual_screen.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:web_socket_client/web_socket_client.dart';
@@ -14,12 +16,15 @@ import 'home_screen.dart';
 import 'mqtt.dart';
 
 class AutomaticScreen extends StatefulWidget {
-  const AutomaticScreen({
+  AutomaticScreen({
     super.key,
     required this.device,
+    this.logList,
   });
 
   final BluetoothDevice? device;
+  BluetoothCharacteristic? targetCharacterstic;
+  final List<LogDataTime>? logList;
 
   @override
   State<AutomaticScreen> createState() => _AutomaticScreenState();
@@ -41,7 +46,7 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
             context,
             MaterialPageRoute(builder: (context) => BleScanner()),
             (route) => false);
-        //   widget.device?.connect();
+
         AppUtils.showflushBar(
             "Your Device disconnected ${widget.device?.platformName}", context);
       }
@@ -54,13 +59,9 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
       services?.forEach((service) async {
         print("service ${service.characteristics}");
 
-        if (service.uuid.toString() ==
-            // "4fafc201-1fb5-459e-8fcc-c5c9c331914b")
-            "fff0") {
+        if (service.uuid.toString() == "fff0") {
           service.characteristics.forEach((characteristics) {
-            if (characteristics.uuid.toString() ==
-                // "beb5483e-36e1-4688-b7f5-ea07361b26a8")
-                "fff1") {
+            if (characteristics.uuid.toString() == "fff1") {
               targetCharacterstic = characteristics;
               targetCharacterstic?.setNotifyValue(true);
               if (mounted) {
@@ -71,41 +72,52 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
         }
       });
 
-
-    buildLogListener();
-
-
-  }
+      buildLogListener();
+    }
   }
 
   StreamSubscription? _notificationSubscription;
 
   @override
   void initState() {
+    widget.logList?.forEach((element) {
+      dataa.add(element);
+    });
+    //  logData=widget.logList??[];
     checkDeviceStatus();
     super.initState();
   }
 
   void dispose() {
-    targetCharacterstic?.setNotifyValue(false);
+    //targetCharacterstic?.setNotifyValue(false);
     super.dispose();
   }
 
   List<String> logData = [];
+  List<LogDataTime> dataa = [];
 
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
     return Scaffold(
       bottomNavigationBar: LogWidget(
-        logData: logData,
+        logData: dataa,
         size: size,
       ),
       appBar: AppBar(
         backgroundColor: Color(0xFF757172),
         leading: InkWell(
             onTap: () {
-              Navigator.pop(context);
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => ManualScreen(
+                              logList: dataa,
+                              device: widget.device,
+                              targetCharacterstic: targetCharacterstic,
+                            ))); // Your state change code here
+              });
             },
             child: Icon(
               Icons.arrow_back,
@@ -155,38 +167,12 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
                     List<int> bytes = utf8.encode("M");
                     await targetCharacterstic?.write(bytes);
 
-                    /*         services = await widget.device?.discoverServices();
-
-                    services?.forEach((service) async {
-                      print("service ${service.characteristics}");
-
-                      if (service.uuid.toString() ==
-                          // "4fafc201-1fb5-459e-8fcc-c5c9c331914b")
-                          "fff0") {
-                        service.characteristics.forEach((characteristics) {
-                          if (characteristics.uuid.toString() ==
-                              // "beb5483e-36e1-4688-b7f5-ea07361b26a8")
-                              "fff1") {
-                            targetCharacterstic = characteristics;
-                            targetCharacterstic?.setNotifyValue(true);
-                            if (mounted) {
-                              // setState(() {});
-                            }
-                          }
-                        });
-                      }
-                    });
-                    List<int> bytes = utf8.encode("M");
-                    await targetCharacterstic?.write(bytes);
-
-                    buildLogListener();*/
-
                     WidgetsBinding.instance.addPostFrameCallback((_) {
-                      Navigator.push(
+                      Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
                               builder: (context) => ManualScreen(
-                                    logList: logData,
+                                    logList: dataa,
                                     device: widget.device,
                                     targetCharacterstic: targetCharacterstic,
                                   ))); // Your state change code here
@@ -198,8 +184,6 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
                   }
                 },
                 title: "Return to Manual Mode"),
-
-            //   (isLoading)?Center(child: CircularProgressIndicator()):
           ],
         ),
       ),
@@ -212,27 +196,57 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
       // Decode the value to string
       String stringValue = utf8.decode(value);
       print("stringValue  $stringValue");
-      logData.add(stringValue);
-      if (mounted) {
-        setState(() {});
+      DateTime date = DateTime.now();
+      String formattedDate = DateFormat('HH:mm:ss').format(date);
+      if (stringValue != null) {
+        dataa.add(LogDataTime(title: stringValue, time: formattedDate));
+        if (mounted) {
+          setState(() {});
+        }
       }
     });
   }
 }
 
-class LogWidget extends StatelessWidget {
+class LogDataTime {
+  final String title;
+  final String time;
+
+  LogDataTime({required this.title, required this.time});
+}
+
+class LogWidget extends StatefulWidget {
   const LogWidget({
     super.key,
     required this.size,
     required this.logData,
   });
-
   final Size size;
-  final List<String> logData;
+  final List<LogDataTime> logData;
+
+  @override
+  State<LogWidget> createState() => _LogWidgetState();
+}
+
+class _LogWidgetState extends State<LogWidget> {
+  final items = [1, 2, 3, 4];
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return AutoScroller(
+      lengthIdentifier: items.length,
+      anchorThreshold: 24,
+      startAnchored: false,
+      builder: (context, controller) {
+        return ListView.builder(
+          controller: controller,
+          itemCount: items.length,
+          itemBuilder: (context, index) =>
+              ListTile(title: Text('Item ${items[index]}')),
+        );
+      },
+    );
+    /*   return Container(
       padding:
           EdgeInsets.only(top: size.height * 0.01, left: size.width * 0.03),
       color: Colors.black,
@@ -245,12 +259,12 @@ class LogWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: List.generate(logData.length, (index) {
             return Text(
-              "${logData[index]} ",
+              "${logData[index].time} -> ${logData[index].title}",
               style: TextStyle(color: Colors.white),
             );
           }),
         ),
       ),
-    );
+    );*/
   }
 }

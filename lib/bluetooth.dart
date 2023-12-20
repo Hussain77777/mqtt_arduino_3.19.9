@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:mqtt_arduino/app_utils.dart';
 import 'package:mqtt_arduino/automatic_screen.dart';
+import 'package:mqtt_arduino/manual_screen.dart';
 
 import 'home_screen.dart';
 
@@ -179,10 +180,10 @@ class _BleScannerState extends State<BleScanner> {
                               }
                               if (state == BluetoothConnectionState.connected) {
                                 print("inside connected ");
-                                Navigator.push(
+                                Navigator.pushReplacement(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => AutomaticScreen(
+                                    builder: (context) => ManualScreen(
                                       device: connectedDevice,
                                     ),
                                   ),

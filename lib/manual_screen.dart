@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:intl/intl.dart';
 import 'package:mqtt_arduino/automatic_screen.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,10 +19,10 @@ class ManualScreen extends StatefulWidget {
   ManualScreen(
       {super.key, this.logList, this.device, this.targetCharacterstic});
 
-  final List<String>? logList;
+
   final BluetoothDevice? device;
   BluetoothCharacteristic? targetCharacterstic;
-
+  final List<LogDataTime>? logList;
   @override
   State<ManualScreen> createState() => _ManualScreenState();
 }
@@ -35,6 +36,7 @@ class _ManualScreenState extends State<ManualScreen> {
   List<DataModel> a = [];
   List<String> logData = [];
 
+  List<LogDataTime> dataa = [];
   checkDeviceStatus() {
     var subscription = widget.device?.connectionState
         .listen((BluetoothConnectionState state) async {
@@ -42,7 +44,7 @@ class _ManualScreenState extends State<ManualScreen> {
         Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) => BleScanner()),
-                (route) => false);
+            (route) => false);
 
         //   widget.device?.connect();
         AppUtils.showflushBar(
@@ -54,17 +56,23 @@ class _ManualScreenState extends State<ManualScreen> {
 
   @override
   void initState() {
-    logData = widget.logList ?? [];
+    widget.logList?.forEach((element) {
+      dataa.add(element);
+    });
+ //   logData = widget.logList ?? [];
     checkDeviceStatus();
     logListener();
     super.initState();
   }
 
+  BluetoothCharacteristic? targetCharacterstic;
+
   logListener() async {
     if (widget.device?.isConnected ?? false) {
+      print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
       List<BluetoothService>? services =
           await widget.device?.discoverServices();
-      widget.targetCharacterstic?.setNotifyValue(true);
+      /*  widget.targetCharacterstic?.setNotifyValue(true);
       widget.targetCharacterstic?.lastValueStream.listen((value) {
         print("stringValue11  $value");
         // Decode the value to string
@@ -74,7 +82,25 @@ class _ManualScreenState extends State<ManualScreen> {
         if (mounted) {
           setState(() {});
         }
+      });*/
+      services?.forEach((service) async {
+        print("service ${service.characteristics}");
+
+        if (service.uuid.toString() == "fff0") {
+          service.characteristics.forEach((characteristics) {
+            if (characteristics.uuid.toString() == "fff1") {
+              print("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+              targetCharacterstic = characteristics;
+              targetCharacterstic?.setNotifyValue(true);
+              if (mounted) {
+                // setState(() {});
+              }
+            }
+          });
+        }
       });
+
+      buildLogListener();
     } else {
       AppUtils.showflushBar(
           "Your Device is not connected to any hardware", context);
@@ -94,7 +120,7 @@ class _ManualScreenState extends State<ManualScreen> {
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
     return Scaffold(
-      bottomNavigationBar: LogWidget(size: size, logData: logData),
+      bottomNavigationBar: LogWidget(size: size, logData: dataa),
       appBar: AppBar(
         actions: [
           InkWell(
@@ -103,7 +129,7 @@ class _ManualScreenState extends State<ManualScreen> {
               Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (context) => BleScanner()),
-                      (route) => false);
+                  (route) => false);
               AppUtils.showflushBar(
                   "Device Disconnected SuccessFully", context);
             },
@@ -112,7 +138,7 @@ class _ManualScreenState extends State<ManualScreen> {
               child: Text(
                 "Disconnect",
                 style:
-                TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                    TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
               ),
             ),
           ),
@@ -120,8 +146,16 @@ class _ManualScreenState extends State<ManualScreen> {
         backgroundColor: Color(0xFF757172),
         leading: InkWell(
             onTap: () {
-              Navigator.pop(context);
-
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => AutomaticScreen(
+                          logList: dataa,
+                          device: widget.device,
+                   //       targetCharacterstic: targetCharacterstic,
+                        ))); // Your state change code here
+              });
             },
             child: Icon(
               Icons.arrow_back,
@@ -153,8 +187,15 @@ class _ManualScreenState extends State<ManualScreen> {
                       onPressed: () async {
                         if (widget.device?.isConnected ?? false) {
                           List<int> bytes = utf8.encode("A");
-                          await widget.targetCharacterstic?.write(bytes);
-Navigator.pop(context);
+                          await targetCharacterstic?.write(bytes);
+                          Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => AutomaticScreen(
+                                    logList: dataa,
+                                    device: widget.device,
+                                    //targetCharacterstic: targetCharacterstic,
+                                  ))); //
                           // buildLogListener();
                         } else {
                           AppUtils.showflushBar(
@@ -168,7 +209,7 @@ Navigator.pop(context);
                       onPressed: () async {
                         if (widget.device?.isConnected ?? false) {
                           List<int> bytes = utf8.encode("U");
-                          await widget.targetCharacterstic?.write(bytes);
+                          await targetCharacterstic?.write(bytes);
 
                           // buildLogListener();
                         } else {
@@ -192,7 +233,7 @@ Navigator.pop(context);
                       onPressed: () async {
                         if (widget.device?.isConnected ?? false) {
                           List<int> bytes = utf8.encode("P");
-                          await widget.targetCharacterstic?.write(bytes);
+                          await targetCharacterstic?.write(bytes);
 
                           // buildLogListener();
                         } else {
@@ -207,7 +248,7 @@ Navigator.pop(context);
                       onPressed: () async {
                         if (widget.device?.isConnected ?? false) {
                           List<int> bytes = utf8.encode("D");
-                          await widget.targetCharacterstic?.write(bytes);
+                          await targetCharacterstic?.write(bytes);
 
                           // buildLogListener();
                         } else {
@@ -232,7 +273,7 @@ Navigator.pop(context);
                       onPressed: () async {
                         if (widget.device?.isConnected ?? false) {
                           List<int> bytes = utf8.encode("C");
-                          await widget.targetCharacterstic?.write(bytes);
+                          await targetCharacterstic?.write(bytes);
 
                           // buildLogListener();
                         } else {
@@ -247,7 +288,7 @@ Navigator.pop(context);
                       onPressed: () async {
                         if (widget.device?.isConnected ?? false) {
                           List<int> bytes = utf8.encode("T");
-                          await widget.targetCharacterstic?.write(bytes);
+                          await targetCharacterstic?.write(bytes);
 
                           // buildLogListener();
                         } else {
@@ -267,15 +308,19 @@ Navigator.pop(context);
   }
 
   StreamSubscription<List<int>>? buildLogListener() {
-    return widget.targetCharacterstic?.lastValueStream.listen((value) {
+    return targetCharacterstic?.lastValueStream.listen((value) {
       print("stringValue  $value");
       // Decode the value to string
       String stringValue = utf8.decode(value);
       print("stringValue  $stringValue");
-      logData.add(stringValue);
+      DateTime date = DateTime.now();
+      String formattedDate = DateFormat('HH:mm:ss').format(date);
+
+      if(stringValue!=null){
+      dataa.add(LogDataTime(title: stringValue, time: formattedDate.toString()));
       if (mounted) {
         setState(() {});
-      }
+      }}
     });
   }
 }
