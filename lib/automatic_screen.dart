@@ -218,10 +218,10 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
       String formattedDate = DateFormat('HH:mm:ss').format(date);
       if (stringValue != null) {
         dataa.add(LogDataTime(title: stringValue, time: formattedDate));
-        if (usrList.length > 20) {
+        if (usrList.length > 100) {
           prefs.clear();
         }
-        if (usrList.length < 20) {
+        if (usrList.length < 100) {
           usrList = dataa.map((item) => jsonEncode(item.toMap())).toList();
 
           prefs.setStringList("list", usrList);

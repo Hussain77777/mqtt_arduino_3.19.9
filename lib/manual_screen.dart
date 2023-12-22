@@ -323,10 +323,10 @@ class _ManualScreenState extends State<ManualScreen> {
       if (stringValue != null) {
         dataa.add(
             LogDataTime(title: stringValue, time: formattedDate.toString()));
-        if (usrList.length > 20) {
+        if (usrList.length > 100) {
           prefs.clear();
         }
-        if (usrList.length < 20) {
+        if (usrList.length < 100) {
           usrList = dataa.map((item) => jsonEncode(item.toMap())).toList();
 
           prefs.setStringList("list", usrList);
