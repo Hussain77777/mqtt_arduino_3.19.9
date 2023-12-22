@@ -1,13 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
-import 'package:auto_scroll/auto_scroll.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:intl/intl.dart';
 import 'package:mqtt_arduino/manual_screen.dart';
 import 'package:mqtt_client/mqtt_client.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web_socket_client/web_socket_client.dart';
 
 import 'app_utils.dart';
@@ -37,7 +38,18 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
   List<String> a = [];
 
   List<BluetoothService>? services;
-
+  Future loadData() async {
+    SharedPreferences prefs=await SharedPreferences.getInstance();
+    List<String>? listString = prefs.getStringList('list');
+    localData = listString?.map((item) => LogDataTime.fromMap(json.decode(item))).toList();
+    log("bbbbbbbbbbbbbbbbbbb ${listString?.map((item) => LogDataTime.fromMap(json.decode(item))).toList()}");
+    log("ccccccccc $localData");
+    localData?.forEach((element) {
+      print("ccccccccc ${element.time}");
+      print("ccccccccc ${element.title}");
+    });
+    //This command gets us the list stored with key name "list"
+  }
   checkDeviceStatus() async {
     var subscription = widget.device?.connectionState
         .listen((BluetoothConnectionState state) async {
@@ -80,6 +92,7 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
 
   @override
   void initState() {
+    loadData();
     widget.logList?.forEach((element) {
       dataa.add(element);
     });
@@ -95,6 +108,7 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
 
   List<String> logData = [];
   List<LogDataTime> dataa = [];
+  List<LogDataTime>? localData = [];
 
   @override
   Widget build(BuildContext context) {
@@ -163,6 +177,9 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
                 color: Colors.orange,
                 onPressed: () async {
                   print("vvvvvvvvvvvvvvvvvv");
+                  SharedPreferences prefs =
+                      await SharedPreferences.getInstance();
+
                   if (widget.device?.isConnected ?? false) {
                     List<int> bytes = utf8.encode("M");
                     await targetCharacterstic?.write(bytes);
@@ -189,8 +206,9 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
       ),
     );
   }
-
-  StreamSubscription<List<int>>? buildLogListener() {
+  List<String> usrList =[];
+  Future<StreamSubscription<List<int>>?> buildLogListener() async {
+    SharedPreferences prefs=await SharedPreferences.getInstance();
     return targetCharacterstic?.lastValueStream.listen((value) {
       print("stringValue  $value");
       // Decode the value to string
@@ -200,9 +218,18 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
       String formattedDate = DateFormat('HH:mm:ss').format(date);
       if (stringValue != null) {
         dataa.add(LogDataTime(title: stringValue, time: formattedDate));
+        if (usrList.length > 20) {
+          prefs.clear();
+        }
+        if (usrList.length < 20) {
+          usrList = dataa.map((item) => jsonEncode(item.toMap())).toList();
+
+          prefs.setStringList("list", usrList);
+        }
         if (mounted) {
           setState(() {});
         }
+
       }
     });
   }
@@ -213,40 +240,34 @@ class LogDataTime {
   final String time;
 
   LogDataTime({required this.title, required this.time});
+
+  LogDataTime.fromMap(
+      Map map) // This Function helps to convert our Map into our User Object
+      : this.title = map["title"],
+        this.time = map["time"];
+
+  Map toMap() {
+    // This Function helps to convert our User Object into a Map.
+    return {
+      "title": this.title,
+      "time": this.time,
+    };
+  }
 }
 
-class LogWidget extends StatefulWidget {
+class LogWidget extends StatelessWidget {
   const LogWidget({
     super.key,
     required this.size,
     required this.logData,
   });
+
   final Size size;
   final List<LogDataTime> logData;
 
   @override
-  State<LogWidget> createState() => _LogWidgetState();
-}
-
-class _LogWidgetState extends State<LogWidget> {
-  final items = [1, 2, 3, 4];
-
-  @override
   Widget build(BuildContext context) {
-    return AutoScroller(
-      lengthIdentifier: items.length,
-      anchorThreshold: 24,
-      startAnchored: false,
-      builder: (context, controller) {
-        return ListView.builder(
-          controller: controller,
-          itemCount: items.length,
-          itemBuilder: (context, index) =>
-              ListTile(title: Text('Item ${items[index]}')),
-        );
-      },
-    );
-    /*   return Container(
+    return Container(
       padding:
           EdgeInsets.only(top: size.height * 0.01, left: size.width * 0.03),
       color: Colors.black,
@@ -265,6 +286,6 @@ class _LogWidgetState extends State<LogWidget> {
           }),
         ),
       ),
-    );*/
+    );
   }
 }

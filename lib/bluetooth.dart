@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:mqtt_arduino/app_utils.dart';
 import 'package:mqtt_arduino/automatic_screen.dart';
+import 'package:mqtt_arduino/logdata.dart';
 import 'package:mqtt_arduino/manual_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'home_screen.dart';
 
@@ -47,14 +49,15 @@ class _BleScannerState extends State<BleScanner> {
     FlutterBluePlus.scanResults.listen((results) {
       for (ScanResult result in results) {
         if (!devices.contains(result.device)) {
-          if(mounted){
-          setState(() {
-            if (result.device.platformName.contains("NAPL")) {
-              devices.add(result.device);
-              isDeviceAvailable = true;
-            }
-          });
-        }}
+          if (mounted) {
+            setState(() {
+              if (result.device.platformName.contains("NAPL")) {
+                devices.add(result.device);
+                isDeviceAvailable = true;
+              }
+            });
+          }
+        }
       }
     });
     if (mounted) {
@@ -69,10 +72,8 @@ class _BleScannerState extends State<BleScanner> {
         }
         if (devices.isEmpty) {
           AppUtils.showflushBar("No Device Found", context);
-
         } else {
-       //   AppUtils.showflushBar("Scan Completed Successfully", context);
-
+          //   AppUtils.showflushBar("Scan Completed Successfully", context);
         }
       });
     }
@@ -91,30 +92,44 @@ class _BleScannerState extends State<BleScanner> {
     Size size = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
-        leading: !isScanning?Container():IconButton(onPressed: (){
-          FlutterBluePlus.stopScan();
-          if(mounted){
-          setState(() {
-            isScanning=false;devices.clear();isDeviceAvailable=false;
-          });}
-        }, icon: Icon(Icons.arrow_back,color: Colors.white,)),
+        leading: !isScanning
+            ? Container()
+            : IconButton(
+                onPressed: () {
+                  FlutterBluePlus.stopScan();
+                  if (mounted) {
+                    setState(() {
+                      isScanning = false;
+                      devices.clear();
+                      isDeviceAvailable = false;
+                    });
+                  }
+                },
+                icon: Icon(
+                  Icons.arrow_back,
+                  color: Colors.white,
+                )),
         backgroundColor: Color(0xFF757172),
-
         title: Text(
           "NAPL Solutions",
           style: TextStyle(color: Colors.white),
         ),
         centerTitle: true,
       ),
-      body: (!isScanning&&devices.isEmpty)
+      body: (!isScanning && devices.isEmpty)
           ? Center(
-              child: Column(     mainAxisAlignment: MainAxisAlignment.start,
-                children: [ SizedBox(
-                  height: size.height * 0.15,
-                ),
-                  Text("Press this button to Start Scan",style: TextStyle(fontSize: size.width*0.05,fontWeight: FontWeight.bold),),
-
-
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    height: size.height * 0.15,
+                  ),
+                  Text(
+                    "Press this button to Start Scan",
+                    style: TextStyle(
+                        fontSize: size.width * 0.05,
+                        fontWeight: FontWeight.bold),
+                  ),
                   SizedBox(
                     height: size.height * 0.05,
                   ),
@@ -124,6 +139,15 @@ class _BleScannerState extends State<BleScanner> {
                         startScanning();
                       },
                       title: 'Scan'),
+                  ButtonWidget(
+                      color: Color(0xFF757172),
+                      onPressed: () async {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => LogDataScreen()));
+                      },
+                      title: 'Logs'),
 
                 ],
               ),

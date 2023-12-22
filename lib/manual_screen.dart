@@ -19,10 +19,10 @@ class ManualScreen extends StatefulWidget {
   ManualScreen(
       {super.key, this.logList, this.device, this.targetCharacterstic});
 
-
   final BluetoothDevice? device;
   BluetoothCharacteristic? targetCharacterstic;
   final List<LogDataTime>? logList;
+
   @override
   State<ManualScreen> createState() => _ManualScreenState();
 }
@@ -37,6 +37,7 @@ class _ManualScreenState extends State<ManualScreen> {
   List<String> logData = [];
 
   List<LogDataTime> dataa = [];
+
   checkDeviceStatus() {
     var subscription = widget.device?.connectionState
         .listen((BluetoothConnectionState state) async {
@@ -59,7 +60,7 @@ class _ManualScreenState extends State<ManualScreen> {
     widget.logList?.forEach((element) {
       dataa.add(element);
     });
- //   logData = widget.logList ?? [];
+    //   logData = widget.logList ?? [];
     checkDeviceStatus();
     logListener();
     super.initState();
@@ -151,10 +152,10 @@ class _ManualScreenState extends State<ManualScreen> {
                     context,
                     MaterialPageRoute(
                         builder: (context) => AutomaticScreen(
-                          logList: dataa,
-                          device: widget.device,
-                   //       targetCharacterstic: targetCharacterstic,
-                        ))); // Your state change code here
+                              logList: dataa,
+                              device: widget.device,
+                              //       targetCharacterstic: targetCharacterstic,
+                            ))); // Your state change code here
               });
             },
             child: Icon(
@@ -192,10 +193,10 @@ class _ManualScreenState extends State<ManualScreen> {
                               context,
                               MaterialPageRoute(
                                   builder: (context) => AutomaticScreen(
-                                    logList: dataa,
-                                    device: widget.device,
-                                    //targetCharacterstic: targetCharacterstic,
-                                  ))); //
+                                        logList: dataa,
+                                        device: widget.device,
+                                        //targetCharacterstic: targetCharacterstic,
+                                      ))); //
                           // buildLogListener();
                         } else {
                           AppUtils.showflushBar(
@@ -307,7 +308,10 @@ class _ManualScreenState extends State<ManualScreen> {
     );
   }
 
-  StreamSubscription<List<int>>? buildLogListener() {
+  List<String> usrList = [];
+
+  Future<StreamSubscription<List<int>>?> buildLogListener() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
     return targetCharacterstic?.lastValueStream.listen((value) {
       print("stringValue  $value");
       // Decode the value to string
@@ -316,11 +320,22 @@ class _ManualScreenState extends State<ManualScreen> {
       DateTime date = DateTime.now();
       String formattedDate = DateFormat('HH:mm:ss').format(date);
 
-      if(stringValue!=null){
-      dataa.add(LogDataTime(title: stringValue, time: formattedDate.toString()));
-      if (mounted) {
-        setState(() {});
-      }}
+      if (stringValue != null) {
+        dataa.add(
+            LogDataTime(title: stringValue, time: formattedDate.toString()));
+        if (usrList.length > 20) {
+          prefs.clear();
+        }
+        if (usrList.length < 20) {
+          usrList = dataa.map((item) => jsonEncode(item.toMap())).toList();
+
+          prefs.setStringList("list", usrList);
+        }
+
+        if (mounted) {
+          setState(() {});
+        }
+      }
     });
   }
 }
