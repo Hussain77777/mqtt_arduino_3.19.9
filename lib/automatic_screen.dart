@@ -45,7 +45,7 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
     log("bbbbbbbbbbbbbbbbbbb ${listString?.map((item) => LogDataTime.fromMap(json.decode(item))).toList()}");
     log("ccccccccc $localData");
     localData?.forEach((element) {
-      print("ccccccccc ${element.time}");
+     // print("ccccccccc ${element.time}");
       print("ccccccccc ${element.title}");
     });
     //This command gets us the list stored with key name "list"
@@ -93,6 +93,7 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
   @override
   void initState() {
     loadData();
+  //  widget.logList?.removeLast();
     widget.logList?.forEach((element) {
       dataa.add(element);
     });
@@ -183,7 +184,7 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
                   if (widget.device?.isConnected ?? false) {
                     List<int> bytes = utf8.encode("M");
                     await targetCharacterstic?.write(bytes);
-
+                    dataa.removeLast();
                     WidgetsBinding.instance.addPostFrameCallback((_) {
                       Navigator.pushReplacement(
                           context,
@@ -217,7 +218,8 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
       DateTime date = DateTime.now();
       String formattedDate = DateFormat('HH:mm:ss').format(date);
       if (stringValue != null) {
-        dataa.add(LogDataTime(title: stringValue, time: formattedDate));
+        dataa.add(LogDataTime(title: stringValue, //time: formattedDate
+        ));
         if (usrList.length > 100) {
           prefs.clear();
         }
@@ -237,20 +239,21 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
 
 class LogDataTime {
   final String title;
-  final String time;
+//  final String time;
 
-  LogDataTime({required this.title, required this.time});
+  LogDataTime({required this.title, //required this.time
+  });
 
   LogDataTime.fromMap(
       Map map) // This Function helps to convert our Map into our User Object
-      : this.title = map["title"],
-        this.time = map["time"];
+      : this.title = map["title"];
+  //      this.time = map["time"];
 
   Map toMap() {
     // This Function helps to convert our User Object into a Map.
     return {
       "title": this.title,
-      "time": this.time,
+    //  "time": this.time,
     };
   }
 }
@@ -280,7 +283,8 @@ class LogWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: List.generate(logData.length, (index) {
             return Text(
-              "${logData[index].time} -> ${logData[index].title}",
+             // "${logData[index].time} -> ${logData[index].title}",
+              "${logData[index].title}",
               style: TextStyle(color: Colors.white),
             );
           }),

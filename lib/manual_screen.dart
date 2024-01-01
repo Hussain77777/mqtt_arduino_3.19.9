@@ -57,6 +57,7 @@ class _ManualScreenState extends State<ManualScreen> {
 
   @override
   void initState() {
+   // widget.logList?.removeLast();
     widget.logList?.forEach((element) {
       dataa.add(element);
     });
@@ -147,15 +148,18 @@ class _ManualScreenState extends State<ManualScreen> {
         backgroundColor: Color(0xFF757172),
         leading: InkWell(
             onTap: () {
+          //    dataa.removeLast();
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => AutomaticScreen(
-                              logList: dataa,
-                              device: widget.device,
-                              //       targetCharacterstic: targetCharacterstic,
-                            ))); // Your state change code here
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AutomaticScreen(
+                      logList: dataa,
+                      device: widget.device,
+                      //       targetCharacterstic: targetCharacterstic,
+                    ),
+                  ),
+                ); // Your state change code here
               });
             },
             child: Icon(
@@ -189,6 +193,7 @@ class _ManualScreenState extends State<ManualScreen> {
                         if (widget.device?.isConnected ?? false) {
                           List<int> bytes = utf8.encode("A");
                           await targetCharacterstic?.write(bytes);
+                          dataa.removeLast();
                           Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
@@ -322,7 +327,7 @@ class _ManualScreenState extends State<ManualScreen> {
 
       if (stringValue != null) {
         dataa.add(
-            LogDataTime(title: stringValue, time: formattedDate.toString()));
+            LogDataTime(title: stringValue, ));
         if (usrList.length > 100) {
           prefs.clear();
         }

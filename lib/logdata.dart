@@ -26,7 +26,7 @@ class _LogDataScreenState extends State<LogDataScreen> {
     log("ccccccccc $localData");
     setState(() {});
     localData?.forEach((element) {
-      print("ccccccccc ${element.time}");
+    //  print("ccccccccc ${element.time}");
       print("ccccccccc ${element.title}");
     });
     //This command gets us the list stored with key name "list"
@@ -89,7 +89,7 @@ class _LogDataScreenState extends State<LogDataScreen> {
                     return Padding(
                       padding:  EdgeInsets.only(left: size.width*0.02,right: size.width*0.02),
                       child: Text(
-                        "${localData?[index].time} -> ${localData?[index].title}",
+                        "${localData?[index].title}",
                         style: TextStyle(color: Colors.white),
                       ),
                     );
