@@ -57,7 +57,7 @@ class _ManualScreenState extends State<ManualScreen> {
 
   @override
   void initState() {
-   // widget.logList?.removeLast();
+    // widget.logList?.removeLast();
     widget.logList?.forEach((element) {
       dataa.add(element);
     });
@@ -148,7 +148,7 @@ class _ManualScreenState extends State<ManualScreen> {
         backgroundColor: Color(0xFF757172),
         leading: InkWell(
             onTap: () {
-          //    dataa.removeLast();
+              //    dataa.removeLast();
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 Navigator.pushReplacement(
                   context,
@@ -191,18 +191,23 @@ class _ManualScreenState extends State<ManualScreen> {
                       color: Color(0xFF70ad46),
                       onPressed: () async {
                         if (widget.device?.isConnected ?? false) {
-                          List<int> bytes = utf8.encode("A");
-                          await targetCharacterstic?.write(bytes);
-                          dataa.removeLast();
-                          Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => AutomaticScreen(
-                                        logList: dataa,
-                                        device: widget.device,
-                                        //targetCharacterstic: targetCharacterstic,
-                                      ))); //
-                          // buildLogListener();
+                          print("bbbbbbbbbbbbbbbbbbbb ${dataa.length}");
+                          if (dataa.length>1) {
+                            List<int> bytes = utf8.encode("A");
+                            await targetCharacterstic?.write(bytes);
+                            dataa.removeLast();
+                            Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => AutomaticScreen(
+                                          logList: dataa,
+                                          device: widget.device,
+                                          //targetCharacterstic: targetCharacterstic,
+                                        ))); //
+                            // buildLogListener();
+                          } else {
+                            AppUtils.showflushBar("Loading", context);
+                          }
                         } else {
                           AppUtils.showflushBar(
                               "Your Device is not connected to any hardware",
@@ -214,11 +219,14 @@ class _ManualScreenState extends State<ManualScreen> {
                       color: Color(0xFF4472c7),
                       onPressed: () async {
                         if (widget.device?.isConnected ?? false) {
-                          List<int> bytes = utf8.encode("U");
-                          await targetCharacterstic?.write(bytes);
+    if (dataa.length>1) {
+      List<int> bytes = utf8.encode("U");
+      await targetCharacterstic?.write(bytes);
 
-                          // buildLogListener();
-                        } else {
+      // buildLogListener();
+    }  else {
+      AppUtils.showflushBar("Loading", context);
+    }} else {
                           AppUtils.showflushBar(
                               "Your Device is not connected to any hardware",
                               context);
@@ -238,11 +246,14 @@ class _ManualScreenState extends State<ManualScreen> {
                       color: Color(0xFFfe0000),
                       onPressed: () async {
                         if (widget.device?.isConnected ?? false) {
+    if (dataa.length>1) {
                           List<int> bytes = utf8.encode("P");
                           await targetCharacterstic?.write(bytes);
 
                           // buildLogListener();
                         } else {
+      AppUtils.showflushBar("Loading", context);
+    }} else {
                           AppUtils.showflushBar(
                               "Your Device is not connected to any hardware",
                               context);
@@ -253,11 +264,13 @@ class _ManualScreenState extends State<ManualScreen> {
                       color: Color(0xFF4473c5),
                       onPressed: () async {
                         if (widget.device?.isConnected ?? false) {
-                          List<int> bytes = utf8.encode("D");
-                          await targetCharacterstic?.write(bytes);
-
-                          // buildLogListener();
-                        } else {
+    if (dataa.length>1) {
+      List<int> bytes = utf8.encode("D");
+      await targetCharacterstic?.write(bytes);
+    } // buildLogListener();
+    else {
+      AppUtils.showflushBar("Loading", context);
+    }   } else {
                           AppUtils.showflushBar(
                               "Your Device is not connected to any hardware",
                               context);
@@ -277,12 +290,14 @@ class _ManualScreenState extends State<ManualScreen> {
                   ButtonWidget(
                       color: Color(0xFFee7d31),
                       onPressed: () async {
-                        if (widget.device?.isConnected ?? false) {
+                        if (widget.device?.isConnected ?? false) { if (dataa.length>1) {
                           List<int> bytes = utf8.encode("C");
                           await targetCharacterstic?.write(bytes);
 
                           // buildLogListener();
                         } else {
+                          AppUtils.showflushBar("Loading", context);
+                        }} else {
                           AppUtils.showflushBar(
                               "Your Device is not connected to any hardware",
                               context);
@@ -293,11 +308,14 @@ class _ManualScreenState extends State<ManualScreen> {
                       color: Color(0xFFee7d31),
                       onPressed: () async {
                         if (widget.device?.isConnected ?? false) {
-                          List<int> bytes = utf8.encode("T");
-                          await targetCharacterstic?.write(bytes);
+    if (dataa.length>1) {
+      List<int> bytes = utf8.encode("T");
+      await targetCharacterstic?.write(bytes);
 
-                          // buildLogListener();
-                        } else {
+      // buildLogListener();
+    } else {
+      AppUtils.showflushBar("Loading", context);
+    }} else {
                           AppUtils.showflushBar(
                               "Your Device is not connected to any hardware",
                               context);
@@ -326,8 +344,9 @@ class _ManualScreenState extends State<ManualScreen> {
       String formattedDate = DateFormat('HH:mm:ss').format(date);
 
       if (stringValue != null) {
-        dataa.add(
-            LogDataTime(title: stringValue, ));
+        dataa.add(LogDataTime(
+          title: stringValue,
+        ));
         if (usrList.length > 100) {
           prefs.clear();
         }
