@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:intl/intl.dart';
 import 'package:mqtt_arduino/automatic_screen.dart';
@@ -94,9 +95,9 @@ class _ManualScreenState extends State<ManualScreen> {
               print("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
               targetCharacterstic = characteristics;
               targetCharacterstic?.setNotifyValue(true);
-              if (mounted) {
+            //  if (mounted) {
                 // setState(() {});
-              }
+              //}
             }
           });
         }
@@ -113,7 +114,9 @@ class _ManualScreenState extends State<ManualScreen> {
 
   @override
   void dispose() {
+//widget.device?.disconnect();
     print("sd fmsdf sdfsdf");
+
     // TODO: implement dispose
     super.dispose();
   }
@@ -192,21 +195,23 @@ class _ManualScreenState extends State<ManualScreen> {
                       onPressed: () async {
                         if (widget.device?.isConnected ?? false) {
                           print("bbbbbbbbbbbbbbbbbbbb ${dataa.length}");
-                          if (dataa.length>1) {
+                          if (dataa.length > 1) {
                             List<int> bytes = utf8.encode("A");
                             await targetCharacterstic?.write(bytes);
                             dataa.removeLast();
                             Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => AutomaticScreen(
-                                          logList: dataa,
-                                          device: widget.device,
-                                          //targetCharacterstic: targetCharacterstic,
-                                        ))); //
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => AutomaticScreen(
+                                  logList: dataa,
+                                  device: widget.device,
+                                  //targetCharacterstic: targetCharacterstic,
+                                ),
+                              ),
+                            ); //
                             // buildLogListener();
                           } else {
-                            AppUtils.showflushBar("Loading", context);
+                            AppUtils.showflushBar("Waiting for Previous Logs", context);
                           }
                         } else {
                           AppUtils.showflushBar(
@@ -219,14 +224,15 @@ class _ManualScreenState extends State<ManualScreen> {
                       color: Color(0xFF4472c7),
                       onPressed: () async {
                         if (widget.device?.isConnected ?? false) {
-    if (dataa.length>1) {
-      List<int> bytes = utf8.encode("U");
-      await targetCharacterstic?.write(bytes);
+                          if (dataa.length > 1) {
+                            List<int> bytes = utf8.encode("U");
+                            await targetCharacterstic?.write(bytes);
 
-      // buildLogListener();
-    }  else {
-      AppUtils.showflushBar("Loading", context);
-    }} else {
+                            // buildLogListener();
+                          } else {
+                            AppUtils.showflushBar("Waiting for Previous Logs", context);
+                          }
+                        } else {
                           AppUtils.showflushBar(
                               "Your Device is not connected to any hardware",
                               context);
@@ -246,14 +252,15 @@ class _ManualScreenState extends State<ManualScreen> {
                       color: Color(0xFFfe0000),
                       onPressed: () async {
                         if (widget.device?.isConnected ?? false) {
-    if (dataa.length>1) {
-                          List<int> bytes = utf8.encode("P");
-                          await targetCharacterstic?.write(bytes);
+                          if (dataa.length > 1) {
+                            List<int> bytes = utf8.encode("P");
+                            await targetCharacterstic?.write(bytes);
 
-                          // buildLogListener();
+                            // buildLogListener();
+                          } else {
+                            AppUtils.showflushBar("Waiting for Previous Logs", context);
+                          }
                         } else {
-      AppUtils.showflushBar("Loading", context);
-    }} else {
                           AppUtils.showflushBar(
                               "Your Device is not connected to any hardware",
                               context);
@@ -264,13 +271,14 @@ class _ManualScreenState extends State<ManualScreen> {
                       color: Color(0xFF4473c5),
                       onPressed: () async {
                         if (widget.device?.isConnected ?? false) {
-    if (dataa.length>1) {
-      List<int> bytes = utf8.encode("D");
-      await targetCharacterstic?.write(bytes);
-    } // buildLogListener();
-    else {
-      AppUtils.showflushBar("Loading", context);
-    }   } else {
+                          if (dataa.length > 1) {
+                            List<int> bytes = utf8.encode("D");
+                            await targetCharacterstic?.write(bytes);
+                          } // buildLogListener();
+                          else {
+                            AppUtils.showflushBar("Waiting for Previous Logs", context);
+                          }
+                        } else {
                           AppUtils.showflushBar(
                               "Your Device is not connected to any hardware",
                               context);
@@ -290,14 +298,16 @@ class _ManualScreenState extends State<ManualScreen> {
                   ButtonWidget(
                       color: Color(0xFFee7d31),
                       onPressed: () async {
-                        if (widget.device?.isConnected ?? false) { if (dataa.length>1) {
-                          List<int> bytes = utf8.encode("C");
-                          await targetCharacterstic?.write(bytes);
+                        if (widget.device?.isConnected ?? false) {
+                          if (dataa.length > 1) {
+                            List<int> bytes = utf8.encode("C");
+                            await targetCharacterstic?.write(bytes);
 
-                          // buildLogListener();
+                            // buildLogListener();
+                          } else {
+                            AppUtils.showflushBar("Waiting for Previous Logs", context);
+                          }
                         } else {
-                          AppUtils.showflushBar("Loading", context);
-                        }} else {
                           AppUtils.showflushBar(
                               "Your Device is not connected to any hardware",
                               context);
@@ -308,14 +318,15 @@ class _ManualScreenState extends State<ManualScreen> {
                       color: Color(0xFFee7d31),
                       onPressed: () async {
                         if (widget.device?.isConnected ?? false) {
-    if (dataa.length>1) {
-      List<int> bytes = utf8.encode("T");
-      await targetCharacterstic?.write(bytes);
+                          if (dataa.length > 1) {
+                            List<int> bytes = utf8.encode("T");
+                            await targetCharacterstic?.write(bytes);
 
-      // buildLogListener();
-    } else {
-      AppUtils.showflushBar("Loading", context);
-    }} else {
+                            // buildLogListener();
+                          } else {
+                            AppUtils.showflushBar("Waiting for Previous Logs", context);
+                          }
+                        } else {
                           AppUtils.showflushBar(
                               "Your Device is not connected to any hardware",
                               context);
@@ -355,10 +366,12 @@ class _ManualScreenState extends State<ManualScreen> {
 
           prefs.setStringList("list", usrList);
         }
+       // SchedulerBinding.instance?.addPostFrameCallback((_) {
+          if (mounted) {
+            setState(() {});
+          }
+   //     });
 
-        if (mounted) {
-          setState(() {});
-        }
       }
     });
   }
