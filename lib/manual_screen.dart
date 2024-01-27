@@ -38,6 +38,10 @@ class _ManualScreenState extends State<ManualScreen> {
   List<String> logData = [];
 
   List<LogDataTime> dataa = [];
+  List<LogDataTime> buttonList = [];
+
+  bool isPumpOn = false;
+  String isStatusOn = "";
 
   checkDeviceStatus() {
     var subscription = widget.device?.connectionState
@@ -69,6 +73,8 @@ class _ManualScreenState extends State<ManualScreen> {
   }
 
   BluetoothCharacteristic? targetCharacterstic;
+  BluetoothCharacteristic? targetCharactersticForButton;
+  BluetoothCharacteristic? targetCharactersticForStatus;
 
   logListener() async {
     if (widget.device?.isConnected ?? false) {
@@ -95,15 +101,24 @@ class _ManualScreenState extends State<ManualScreen> {
               print("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
               targetCharacterstic = characteristics;
               targetCharacterstic?.setNotifyValue(true);
-            //  if (mounted) {
-                // setState(() {});
-              //}
+            }
+            if (characteristics.uuid.toString() == "fff2") {
+              print("targetCharactersticForButton ");
+              targetCharactersticForButton = characteristics;
+              targetCharactersticForButton?.setNotifyValue(true);
+            }
+            if (characteristics.uuid.toString() == "fff3") {
+              print("targetCharactersticForStatus ");
+              targetCharactersticForStatus = characteristics;
+              targetCharactersticForStatus?.setNotifyValue(true);
             }
           });
         }
       });
 
       buildLogListener();
+      buildLogListenerForButton();
+      buildLogListenerForStatus();
     } else {
       AppUtils.showflushBar(
           "Your Device is not connected to any hardware", context);
@@ -124,219 +139,305 @@ class _ManualScreenState extends State<ManualScreen> {
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
-    return Scaffold(
-      bottomNavigationBar: LogWidget(size: size, logData: dataa),
-      appBar: AppBar(
-        actions: [
-          InkWell(
-            onTap: () {
-              widget.device?.disconnect();
-              Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => BleScanner()),
-                  (route) => false);
-              AppUtils.showflushBar(
-                  "Device Disconnected SuccessFully", context);
-            },
-            child: Padding(
-              padding: EdgeInsets.only(right: 10),
-              child: Text(
-                "Disconnect",
-                style:
-                    TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-              ),
-            ),
-          ),
-        ],
-        backgroundColor: Color(0xFF757172),
-        leading: InkWell(
-            onTap: () {
-              //    dataa.removeLast();
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => AutomaticScreen(
-                      logList: dataa,
-                      device: widget.device,
-                      //       targetCharacterstic: targetCharacterstic,
-                    ),
-                  ),
-                ); // Your state change code here
-              });
-            },
-            child: Icon(
-              Icons.arrow_back,
-              color: Colors.white,
-            )),
-        title: Text(
-          "Manual Mode",
-          style: TextStyle(color: Colors.white),
-        ),
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        physics: NeverScrollableScrollPhysics(),
-        child: //(isLoading)?Center(child: CircularProgressIndicator()):
-            Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Padding(
-              padding: EdgeInsets.only(
-                  top: size.height * 0.02,
-                  left: size.width * 0.07,
-                  right: size.width * 0.07),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  ButtonWidget(
-                      color: Color(0xFF70ad46),
-                      onPressed: () async {
-                        if (widget.device?.isConnected ?? false) {
-                          print("bbbbbbbbbbbbbbbbbbbb ${dataa.length}");
-                          if (dataa.length > 1) {
-                            List<int> bytes = utf8.encode("A");
-                            await targetCharacterstic?.write(bytes);
-                            dataa.removeLast();
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => AutomaticScreen(
-                                  logList: dataa,
-                                  device: widget.device,
-                                  //targetCharacterstic: targetCharacterstic,
-                                ),
-                              ),
-                            ); //
-                            // buildLogListener();
-                          } else {
-                            AppUtils.showflushBar("Waiting for Previous Logs", context);
-                          }
-                        } else {
-                          AppUtils.showflushBar(
-                              "Your Device is not connected to any hardware",
-                              context);
-                        }
-                      },
-                      title: 'Automatic Mode '),
-                  ButtonWidget(
-                      color: Color(0xFF4472c7),
-                      onPressed: () async {
-                        if (widget.device?.isConnected ?? false) {
-                          if (dataa.length > 1) {
-                            List<int> bytes = utf8.encode("U");
-                            await targetCharacterstic?.write(bytes);
-
-                            // buildLogListener();
-                          } else {
-                            AppUtils.showflushBar("Waiting for Previous Logs", context);
-                          }
-                        } else {
-                          AppUtils.showflushBar(
-                              "Your Device is not connected to any hardware",
-                              context);
-                        }
-                      },
-                      title: 'Reel Up '),
-                ],
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.only(
-                  left: size.width * 0.07, right: size.width * 0.07),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  ButtonWidget(
-                      color: Color(0xFFfe0000),
-                      onPressed: () async {
-                        if (widget.device?.isConnected ?? false) {
-                          if (dataa.length > 1) {
-                            List<int> bytes = utf8.encode("P");
-                            await targetCharacterstic?.write(bytes);
-
-                            // buildLogListener();
-                          } else {
-                            AppUtils.showflushBar("Waiting for Previous Logs", context);
-                          }
-                        } else {
-                          AppUtils.showflushBar(
-                              "Your Device is not connected to any hardware",
-                              context);
-                        }
-                      },
-                      title: 'Pump '),
-                  ButtonWidget(
-                      color: Color(0xFF4473c5),
-                      onPressed: () async {
-                        if (widget.device?.isConnected ?? false) {
-                          if (dataa.length > 1) {
-                            List<int> bytes = utf8.encode("D");
-                            await targetCharacterstic?.write(bytes);
-                          } // buildLogListener();
-                          else {
-                            AppUtils.showflushBar("Waiting for Previous Logs", context);
-                          }
-                        } else {
-                          AppUtils.showflushBar(
-                              "Your Device is not connected to any hardware",
-                              context);
-                        }
-                      },
-                      title: 'Reel Down '),
-                  //),
-                ],
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.only(
-                  left: size.width * 0.07, right: size.width * 0.07),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  ButtonWidget(
-                      color: Color(0xFFee7d31),
-                      onPressed: () async {
-                        if (widget.device?.isConnected ?? false) {
-                          if (dataa.length > 1) {
-                            List<int> bytes = utf8.encode("C");
-                            await targetCharacterstic?.write(bytes);
-
-                            // buildLogListener();
-                          } else {
-                            AppUtils.showflushBar("Waiting for Previous Logs", context);
-                          }
-                        } else {
-                          AppUtils.showflushBar(
-                              "Your Device is not connected to any hardware",
-                              context);
-                        }
-                      },
-                      title: 'Calibration '),
-                  ButtonWidget(
-                      color: Color(0xFFee7d31),
-                      onPressed: () async {
-                        if (widget.device?.isConnected ?? false) {
-                          if (dataa.length > 1) {
-                            List<int> bytes = utf8.encode("T");
-                            await targetCharacterstic?.write(bytes);
-
-                            // buildLogListener();
-                          } else {
-                            AppUtils.showflushBar("Waiting for Previous Logs", context);
-                          }
-                        } else {
-                          AppUtils.showflushBar(
-                              "Your Device is not connected to any hardware",
-                              context);
-                        }
-                      },
-                      title: 'Trouble  Shooting '),
-                ],
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        bottomNavigationBar: LogWidget(size: size, logData: dataa),
+        appBar: AppBar(
+          actions: [
+            InkWell(
+              onTap: () {
+                widget.device?.disconnect();
+                Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) => BleScanner()),
+                    (route) => false);
+                AppUtils.showflushBar(
+                    "Device Disconnected SuccessFully", context);
+              },
+              child: Padding(
+                padding: EdgeInsets.only(right: 10),
+                child: Text(
+                  "Disconnect",
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, color: Colors.white),
+                ),
               ),
             ),
           ],
+          backgroundColor: Colors.blue,
+          leading: InkWell(
+              onTap: () {
+                //    dataa.removeLast();
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => AutomaticScreen(
+                        logList: dataa,
+                        device: widget.device,
+                        //       targetCharacterstic: targetCharacterstic,
+                      ),
+                    ),
+                  ); // Your state change code here
+                });
+              },
+              child: Icon(
+                Icons.arrow_back,
+                color: Colors.white,
+              )),
+          title: Text(
+            "Manual Mode",
+            style: TextStyle(color: Colors.white),
+          ),
+          centerTitle: true,
+        ),
+        body: SingleChildScrollView(
+          physics: NeverScrollableScrollPhysics(),
+          child: //(isLoading)?Center(child: CircularProgressIndicator()):
+              Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              SizedBox(
+                height: size.height * 0.02,
+              ),
+              Padding(
+                padding: EdgeInsets.only(
+                  //   top: size.height * 0.005,
+                  left: size.width * 0.07,
+                  right: size.width * 0.07,
+                ),
+                child: Column(
+                  // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ButtonWidget(
+                        color: Color(0xFF70ad46),
+                        onPressed: () async {
+                          if (widget.device?.isConnected ?? false) {
+                            print("bbbbbbbbbbbbbbbbbbbb ${dataa.length}");
+                            if (dataa.length > 1) {
+                              List<int> bytes = utf8.encode("A");
+                              await targetCharacterstic?.write(bytes);
+                              dataa.removeLast();
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => AutomaticScreen(
+                                    logList: dataa,
+                                    device: widget.device,
+                                    //targetCharacterstic: targetCharacterstic,
+                                  ),
+                                ),
+                              ); //
+                              ();
+                            } else {
+                              AppUtils.showflushBar(
+                                  "Waiting for Previous Logs", context);
+                            }
+                          } else {
+                            AppUtils.showflushBar(
+                                "Your Device is not connected to any hardware",
+                                context);
+                          }
+                        },
+                        title: 'Automatic Mode '),
+                  ],
+                ),
+              ),
+              Divider(
+                height: size.height * 0.01,
+                color: Colors.white,
+              ),
+              SizedBox(
+                height: size.height * 0.01,
+              ),
+              Padding(
+                padding: EdgeInsets.only(
+                    //top: size.height * 0.01,
+                    left: size.width * 0.07,
+                    right: size.width * 0.07),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ButtonWidget(
+                        color: Color(0xFF4472c7),
+                        onPressed: () async {
+                          if (widget.device?.isConnected ?? false) {
+                            if (dataa.length > 1) {
+                              List<int> bytes = utf8.encode("U");
+                              await targetCharacterstic?.write(bytes);
+
+                              ();
+                            } else {
+                              AppUtils.showflushBar(
+                                  "Waiting for Previous Logs", context);
+                            }
+                          } else {
+                            AppUtils.showflushBar(
+                                "Your Device is not connected to any hardware",
+                                context);
+                          }
+                        },
+                        title: 'Reel Up '),
+                    ButtonWidget(
+                        color: Color(0xFF4473c5),
+                        onPressed: () async {
+                          if (widget.device?.isConnected ?? false) {
+                            if (dataa.length > 1) {
+                              List<int> bytes = utf8.encode("D");
+                              await targetCharacterstic?.write(bytes);
+                            } else {
+                              AppUtils.showflushBar(
+                                  "Waiting for Previous Logs", context);
+                            }
+                          } else {
+                            AppUtils.showflushBar(
+                                "Your Device is not connected to any hardware",
+                                context);
+                          }
+                        },
+                        title: 'Reel Down '),
+                  ],
+                ),
+              ),
+              Divider(
+                height: size.height * 0.01,
+                color: Colors.white,
+              ),
+              SizedBox(
+                height: size.height * 0.01,
+              ),
+
+              Padding(
+                padding: EdgeInsets.only(
+                    left: size.width * 0.07, right: size.width * 0.07),
+                child: Row(
+                  //    crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    ButtonWidget(
+                        color: Color(0xFFfe0000),
+                        onPressed: () async {
+                          if (widget.device?.isConnected ?? false) {
+                            if (dataa.length > 1) {
+                              List<int> bytes = utf8.encode("P");
+                              await targetCharacterstic?.write(bytes);
+                            } else {
+                              AppUtils.showflushBar(
+                                  "Waiting for Previous Logs", context);
+                            }
+                          } else {
+                            AppUtils.showflushBar(
+                                "Your Device is not connected to any hardware",
+                                context);
+                          }
+                        },
+                        title: 'Pump'),
+                    ButtonWidgetForStatus(
+                        color: (isPumpOn) ? Colors.green : Colors.red,
+                        onPressed: () async {},
+                        title: (isPumpOn) ? 'On' : 'Off'),
+                    //),
+                  ],
+                ),
+              ),
+              Divider(
+                height: size.height * 0.01,
+                color: Colors.white,
+              ),
+              SizedBox(
+                height: size.height * 0.01,
+              ),
+              Padding(
+                padding: EdgeInsets.only(
+                    left: size.width * 0.07, right: size.width * 0.07),
+                child: Row(
+                 // crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    ButtonWidget(
+                        color: Color(0xFFee7d31),
+                        onPressed: () async {
+                          if (widget.device?.isConnected ?? false) {
+                            if (dataa.length > 1) {
+                              List<int> bytes = utf8.encode("Q");
+                              await targetCharacterstic?.write(bytes);
+                            } else {
+                              AppUtils.showflushBar(
+                                  "Waiting for Previous Logs", context);
+                            }
+                          } else {
+                            AppUtils.showflushBar(
+                                "Your Device is not connected to any hardware",
+                                context);
+                          }
+                        },
+                        title: 'Status'),
+                    ButtonWidgetForStatus(
+                        color: Color(0xFFee7d31),
+                        onPressed: () async {
+
+                        },
+                        title: isStatusOn),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.only(
+                    left: size.width * 0.07, right: size.width * 0.07),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    ButtonWidget(
+                        color: Color(0xFFee7d31),
+                        onPressed: () async {
+                          if (widget.device?.isConnected ?? false) {
+                            if (dataa.length > 1) {
+                              List<int> bytes = utf8.encode("C");
+                              await targetCharacterstic?.write(bytes);
+                            } else {
+                              AppUtils.showflushBar(
+                                  "Waiting for Previous Logs", context);
+                            }
+                          } else {
+                            AppUtils.showflushBar(
+                                "Your Device is not connected to any hardware",
+                                context);
+                          }
+                        },
+                        title: 'Calibration '),
+                    ButtonWidget(
+                        color: Color(0xFFee7d31),
+                        onPressed: () async {
+                          if (widget.device?.isConnected ?? false) {
+                            if (dataa.length > 1) {
+                              List<int> bytes = utf8.encode("T");
+                              await targetCharacterstic?.write(bytes);
+                            } else {
+                              AppUtils.showflushBar(
+                                  "Waiting for Previous Logs", context);
+                            }
+                          } else {
+                            AppUtils.showflushBar(
+                                "Your Device is not connected to any hardware",
+                                context);
+                          }
+                        },
+                        title: 'Trouble  Shooting '),
+                  ],
+                ),
+              ),
+              Divider(
+                height: size.height * 0.01,
+                color: Colors.white,
+              ),
+              //  SizedBox(height: size.height*0.02,),
+            ],
+          ),
         ),
       ),
     );
@@ -366,12 +467,72 @@ class _ManualScreenState extends State<ManualScreen> {
 
           prefs.setStringList("list", usrList);
         }
-       // SchedulerBinding.instance?.addPostFrameCallback((_) {
-          if (mounted) {
-            setState(() {});
-          }
-   //     });
+        // SchedulerBinding.instance?.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {});
+        }
+        //     });
+      }
+    });
+  }
 
+  Future<StreamSubscription<List<int>>?> buildLogListenerForButton() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return targetCharactersticForButton?.lastValueStream.listen((value) {
+      print("targetCharactersticForButton stringValue  $value");
+      // Decode the value to string
+      String targetCharactersticForButtonStringValue = utf8.decode(value);
+      print(
+          "targetCharactersticForButton stringValue  $targetCharactersticForButtonStringValue");
+      DateTime date = DateTime.now();
+      String formattedDate = DateFormat('HH:mm:ss').format(date);
+
+      if (targetCharactersticForButtonStringValue != null) {
+        /*   buttonList.add(
+          LogDataTime(
+            title: targetCharactersticForButtonStringValue,
+          ),
+        );*/
+        if (targetCharactersticForButtonStringValue == "pump_on") {
+          isPumpOn = true;
+        }
+        if (targetCharactersticForButtonStringValue == "pump_off") {
+          isPumpOn = false;
+        }
+        if (mounted) {
+          setState(() {});
+        }
+      }
+    });
+  }
+
+  Future<StreamSubscription<List<int>>?> buildLogListenerForStatus() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return targetCharactersticForStatus?.lastValueStream.listen((value) {
+      print("targetCharactersticForStatus stringValue  $value");
+      // Decode the value to string
+      String targetCharactersticForStatusStringValue = utf8.decode(value);
+      print(
+          "targetCharactersticForStatus stringValue  $targetCharactersticForStatusStringValue");
+      DateTime date = DateTime.now();
+      String formattedDate = DateFormat('HH:mm:ss').format(date);
+
+      if (targetCharactersticForStatusStringValue != null) {
+        /*   buttonList.add(
+          LogDataTime(
+            title: targetCharactersticForButtonStringValue,
+          ),
+        );*/
+        isStatusOn=targetCharactersticForStatusStringValue;
+       /* if (targetCharactersticForStatusStringValue == "forward") {
+          isStatusOn = true;
+        }
+        if (targetCharactersticForStatusStringValue == "reverse") {
+          isStatusOn = false;
+        }*/
+        if (mounted) {
+          setState(() {});
+        }
       }
     });
   }

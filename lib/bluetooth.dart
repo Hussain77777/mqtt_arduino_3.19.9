@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:intl/intl.dart';
 import 'package:mqtt_arduino/app_utils.dart';
 import 'package:mqtt_arduino/automatic_screen.dart';
 import 'package:mqtt_arduino/logdata.dart';
@@ -36,7 +38,10 @@ class _BleScannerState extends State<BleScanner> {
     }
     if (await FlutterBluePlus.isSupported == false) {
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Bluetooth not supported by this device")));
+        SnackBar(
+          content: Text("Bluetooth not supported by this device"),
+        ),
+      );
 
       return;
     }
@@ -51,7 +56,8 @@ class _BleScannerState extends State<BleScanner> {
         if (!devices.contains(result.device)) {
           if (mounted) {
             setState(() {
-              if (result.device.platformName.contains("NAPL")) {
+              if (result.device.platformName.contains("NAPL") ||
+                  result.device.platformName.contains("napl")) {
                 devices.add(result.device);
                 isDeviceAvailable = true;
               }
@@ -84,110 +90,122 @@ class _BleScannerState extends State<BleScanner> {
   @override
   void dispose() {
     FlutterBluePlus.stopScan();
+
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
-    return Scaffold(
-      appBar: AppBar(
-        leading: !isScanning
-            ? Container()
-            : IconButton(
-                onPressed: () {
-                  FlutterBluePlus.stopScan();
-                  if (mounted) {
-                    setState(() {
-                      isScanning = false;
-                      devices.clear();
-                      isDeviceAvailable = false;
-                    });
-                  }
-                },
-                icon: Icon(
-                  Icons.arrow_back,
-                  color: Colors.white,
-                )),
-        backgroundColor: Color(0xFF757172),
-        title: Text(
-          "NAPL Solutions",
-          style: TextStyle(color: Colors.white),
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(
+          leading: !isScanning
+              ? Container()
+              : IconButton(
+                  onPressed: () {
+                    FlutterBluePlus.stopScan();
+                    if (mounted) {
+                      setState(() {
+                        isScanning = false;
+                        devices.clear();
+                        isDeviceAvailable = false;
+                      });
+                    }
+                  },
+                  icon: Icon(
+                    Icons.arrow_back,
+                    color: Colors.white,
+                  )),
+          backgroundColor: Colors.blue,
+          title: Text(
+            "NAPL Solutions",
+            style: TextStyle(color: Colors.white),
+          ),
+          centerTitle: true,
         ),
-        centerTitle: true,
-      ),
-      body: (!isScanning && devices.isEmpty)
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    height: size.height * 0.15,
-                  ),
-                  Text(
-                    "Press this button to Start Scan",
-                    style: TextStyle(
-                        fontSize: size.width * 0.05,
-                        fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(
-                    height: size.height * 0.05,
-                  ),
-                  ButtonWidget(
-                      color: Color(0xFF757172),
-                      onPressed: () async {
-                        startScanning();
-                      },
-                      title: 'Scan'),
-                  ButtonWidget(
-                      color: Color(0xFF757172),
-                      onPressed: () async {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => LogDataScreen()));
-                      },
-                      title: 'Logs'),
-
-                ],
-              ),
-            )
-          : (!isDeviceAvailable)
-              ? Column(
+        body: (!isScanning && devices.isEmpty)
+            ? Center(
+                child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     SizedBox(
                       height: size.height * 0.15,
                     ),
                     Text(
-                      "Scanning...",
+                      "Press this button to Start Scan",
                       style: TextStyle(
-                          color: Colors.black, fontSize: size.width * 0.1),
+                          color: Colors.white,
+                          fontSize: size.width * 0.05,
+                          fontWeight: FontWeight.bold),
                     ),
                     SizedBox(
-                      height: size.height * 0.15,
+                      height: size.height * 0.05,
                     ),
-                    Center(
-                      child: CircularProgressIndicator(
-                        color: Colors.black,
-                      ),
+                    ButtonWidget(
+                        color: Colors.blue,
+                        onPressed: () async {
+                          startScanning();
+                        },
+                        title: 'Scan'),
+                    SizedBox(
+                      height: size.height * 0.05,
                     ),
+                    ButtonWidget(
+                        color: Colors.blue,
+                        onPressed: () async {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => LogDataScreen()));
+                        },
+                        title: 'Logs'),
                   ],
-                )
-              : ListView.builder(
-                  itemCount: devices.length,
-                  itemBuilder: (context, index) {
-                    print("device Length ${devices.length}");
+                ),
+              )
+            : (!isDeviceAvailable)
+                ? Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        height: size.height * 0.15,
+                      ),
+                      Text(
+                        "Scanning...",
+                        style: TextStyle(
+                            color: Colors.white, fontSize: size.width * 0.1),
+                      ),
+                      SizedBox(
+                        height: size.height * 0.15,
+                      ),
+                      Center(
+                        child: CircularProgressIndicator(
+                          color: Colors.black,
+                        ),
+                      ),
+                    ],
+                  )
+                : ListView.builder(
+                    itemCount: devices.length,
+                    itemBuilder: (context, index) {
+                      print("device Length ${devices.length}");
 
-                    var deviceData = devices[index];
-                    if (!isDeviceAvailable) {
-                      print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-                      return CircularProgressIndicator(
-                        color: Colors.black,
-                      );
-                    }
-                    return ListTile(
-                      trailing: ElevatedButton(
+                      var deviceData = devices[index];
+                      if (!isDeviceAvailable) {
+                        print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+                        return CircularProgressIndicator(
+                          color: Colors.black,
+                        );
+                      }
+                      return ListTile(
+                        trailing: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            /*shape: RoundedRectangleBorder(
+                                borderRadius:
+                                    BorderRadius.circular(size.width * 0.8)),*/
+                            backgroundColor: Colors.blue,
+                          ),
                           onPressed: () {
                             connectedDevice = deviceData;
                             connectedDevice?.connect();
@@ -204,26 +222,113 @@ class _BleScannerState extends State<BleScanner> {
                               }
                               if (state == BluetoothConnectionState.connected) {
                                 print("inside connected ");
-                                Navigator.pushReplacement(
+                                logListener();
+                            /*    Navigator.pushReplacement(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => ManualScreen(
                                       device: connectedDevice,
                                     ),
                                   ),
-                                );
+                                );*/
                                 AppUtils.showflushBar(
                                     "Device Connected Successfully with ${connectedDevice?.platformName}",
                                     context);
                               }
                             });
                           },
-                          child: Text("Connect")),
-                      title: Text(devices[index].platformName),
-                      subtitle: Text(devices[index].id.toString()),
-                    );
-                  },
-                ),
+                          child: Text(
+                            "Connect",
+                            style: TextStyle(
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                        title: Text(
+                          devices[index].platformName,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: size.width * 0.05,
+                          ),
+                        ),
+                        subtitle: Text(
+                          "macaddress : ${devices[index].id.toString()}",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: size.width * 0.033,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+      ),
     );
+  }
+
+  logListener() async {
+    if (connectedDevice?.isConnected ?? false) {
+      print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+      List<BluetoothService>? services =
+          await connectedDevice?.discoverServices();
+
+      services?.forEach((service) async {
+        print("service ${service.characteristics}");
+
+        if (service.uuid.toString() == "fff0") {
+          service.characteristics.forEach((characteristics) {
+            if (characteristics.uuid.toString() == "fff4") {
+              print("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+              targetCharacterstic = characteristics;
+              targetCharacterstic?.setNotifyValue(true);
+            }
+          });
+        }
+      });
+
+      buildLogListener();
+    } else {
+      AppUtils.showflushBar(
+          "Your Device is not connected to any hardware", context);
+    }
+  }
+
+  List<String> usrList = [];
+
+  Future<StreamSubscription<List<int>>?> buildLogListener() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return targetCharacterstic?.lastValueStream.listen((value) {
+      print("stringValue  $value");
+
+      String? stringValue = utf8.decode(value);
+      print("stringValue  $stringValue");
+      if (mounted) {
+        AppUtils.showflushBar(
+            stringValue.isNotEmpty ? stringValue : "Empty", context);
+      }
+     // if (stringValue=="manual") {
+      if (stringValue.contains("manual")) {
+        Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ManualScreen(
+                device: connectedDevice,
+              ),
+            ),
+            (route) => false);
+      }
+  //    if (stringValue=="auto") {
+     if (stringValue.contains("auto")) {
+        Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+                builder: (context) => AutomaticScreen(
+                      device: connectedDevice,
+                    )),
+            (route) => false);
+      }
+      //    AppUtils.showflushBar(stringValue??"Empty", context);
+      DateTime date = DateTime.now();
+      String formattedDate = DateFormat('HH:mm:ss').format(date);
+    });
   }
 }

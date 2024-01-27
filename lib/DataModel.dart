@@ -10,11 +10,11 @@ class DataModel {
   String? hello;
   String ?data;
 
-  Map<String, dynamic> toJson() {
+ /* Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
     map['hello'] = hello;
     map['data'] = data;
     return map;
-  }
+  }*/
 
 }

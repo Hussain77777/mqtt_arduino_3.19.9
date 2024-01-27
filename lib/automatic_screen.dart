@@ -114,95 +114,134 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
-    return Scaffold(
-      bottomNavigationBar: LogWidget(
-        logData: dataa,
-        size: size,
-      ),
-      appBar: AppBar(
-        backgroundColor: Color(0xFF757172),
-        leading: InkWell(
-            onTap: () {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                Navigator.pushReplacement(
+    return SafeArea(
+      child: Scaffold(backgroundColor: Colors.black,
+        bottomNavigationBar: LogWidgetForAutomaticMode(
+          logData: dataa,
+          size: size,
+        ),
+        appBar: AppBar(
+          backgroundColor: Colors.blue,
+          leading: InkWell(
+              onTap: () {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => ManualScreen(
+                                logList: dataa,
+                                device: widget.device,
+                                targetCharacterstic: targetCharacterstic,
+                              ))); // Your state change code here
+                });
+              },
+              child: Icon(
+                Icons.arrow_back,
+                color: Colors.white,
+              )),
+          actions: [
+            InkWell(
+              onTap: () {
+                widget.device?.disconnect();
+                Navigator.pushAndRemoveUntil(
                     context,
-                    MaterialPageRoute(
-                        builder: (context) => ManualScreen(
-                              logList: dataa,
-                              device: widget.device,
-                              targetCharacterstic: targetCharacterstic,
-                            ))); // Your state change code here
-              });
-            },
-            child: Icon(
-              Icons.arrow_back,
-              color: Colors.white,
-            )),
-        actions: [
-          InkWell(
-            onTap: () {
-              widget.device?.disconnect();
-              Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => BleScanner()),
-                  (route) => false);
-              AppUtils.showflushBar(
-                  "Device Disconnected SuccessFully", context);
-            },
-            child: Padding(
-              padding: EdgeInsets.only(right: 10),
-              child: Text(
-                "Disconnect",
-                style:
-                    TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                    MaterialPageRoute(builder: (context) => BleScanner()),
+                    (route) => false);
+                AppUtils.showflushBar(
+                    "Device Disconnected SuccessFully", context);
+              },
+              child: Padding(
+                padding: EdgeInsets.only(right: 10),
+                child: Text(
+                  "Disconnect",
+                  style:
+                      TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                ),
               ),
             ),
-          ),
-        ],
-        title: Text(
-          "Automatic Mode",
-          style: TextStyle(color: Colors.white),
-        ),
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        physics: const NeverScrollableScrollPhysics(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            SizedBox(
-              height: size.height * 0.05,
-            ),
-            ButtonWidget(
-                color: Colors.orange,
-                onPressed: () async {
-                  print("vvvvvvvvvvvvvvvvvv");
-                  SharedPreferences prefs =
-                      await SharedPreferences.getInstance();
-
-                  if (widget.device?.isConnected ?? false) {
-                    List<int> bytes = utf8.encode("M");
-                    await targetCharacterstic?.write(bytes);
-                    dataa.removeLast();
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => ManualScreen(
-                                    logList: dataa,
-                                    device: widget.device,
-                                    targetCharacterstic: targetCharacterstic,
-                                  ))); // Your state change code here
-                    });
-                  } else {
-                    AppUtils.showflushBar(
-                        "Your Device is not connected to any hardware",
-                        context);
-                  }
-                },
-                title: "Return to Manual Mode"),
           ],
+          title: Text(
+            "Automatic Mode",
+            style: TextStyle(color: Colors.white),
+          ),
+          centerTitle: true,
+        ),
+        body: SingleChildScrollView(
+          physics: const NeverScrollableScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              SizedBox(
+                height: size.height * 0.05,
+              ),
+
+              Padding(
+                padding: EdgeInsets.only(
+                  //   top: size.height * 0.005,
+                  left: size.width * 0.07,
+                  right: size.width * 0.07,
+                ),
+                child: ButtonWidget(
+                    color: Colors.orange,
+                    onPressed: () async {
+                      print("vvvvvvvvvvvvvvvvvv");
+
+                      if (widget.device?.isConnected ?? false) {
+                        List<int> bytes = utf8.encode("M");
+                        await targetCharacterstic?.write(bytes);
+                        dataa.removeLast();
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => ManualScreen(
+                                        logList: dataa,
+                                        device: widget.device,
+                                        targetCharacterstic: targetCharacterstic,
+                                      ))); // Your state change code here
+                        });
+                      } else {
+                        AppUtils.showflushBar(
+                            "Your Device is not connected to any hardware",
+                            context);
+                      }
+                    },
+                    title: "Return to Manual Mode"),
+              ),
+              Divider(
+                height: size.height * 0.01,
+                color: Colors.white,
+              ),
+              SizedBox(
+                height: size.height * 0.01,
+              ),
+              Padding(
+                padding: EdgeInsets.only(
+                  //   top: size.height * 0.005,
+                  left: size.width * 0.07,
+                  right: size.width * 0.07,
+                ),
+                child: ButtonWidget(
+                    color: Colors.orange,
+                    onPressed: () async {
+                      print("vvvvvvvvvvvvvvvvvv");
+
+
+                      if (widget.device?.isConnected ?? false) {
+                        List<int> bytes = utf8.encode("Q");
+                        await targetCharacterstic?.write(bytes);
+
+                      } else {
+                        AppUtils.showflushBar(
+                            "Your Device is not connected to any hardware",
+                            context);
+                      }
+                    },
+                    title: "Status"),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -275,7 +314,42 @@ class LogWidget extends StatelessWidget {
           EdgeInsets.only(top: size.height * 0.01, left: size.width * 0.03),
       color: Colors.black,
       width: size.width,
-      height: size.height * 0.45,
+      height: size.height * 0.18,
+
+      // margin: EdgeInsets.only(left: size.width*0.1,right: size.width*0.1,),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: List.generate(logData.length, (index) {
+            return Text(
+             // "${logData[index].time} -> ${logData[index].title}",
+              "${logData[index].title}",
+              style: TextStyle(color: Colors.white),
+            );
+          }),
+        ),
+      ),
+    );
+  }
+}
+class LogWidgetForAutomaticMode extends StatelessWidget {
+  const LogWidgetForAutomaticMode({
+    super.key,
+    required this.size,
+    required this.logData,
+  });
+
+  final Size size;
+  final List<LogDataTime> logData;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding:
+          EdgeInsets.only(top: size.height * 0.01, left: size.width * 0.03),
+      color: Colors.black,
+      width: size.width,
+      height: size.height * 0.58,
 
       // margin: EdgeInsets.only(left: size.width*0.1,right: size.width*0.1,),
       child: SingleChildScrollView(

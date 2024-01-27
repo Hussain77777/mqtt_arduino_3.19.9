@@ -35,8 +35,8 @@ class _HomeScreenState extends State<HomeScreen> {
     // Listen for changes in the connection state.
     socket.connection.state;
 
-
-    socket.connection.listen((state) => print('state:11 "${state.toString()}"'));
+    socket.connection
+        .listen((state) => print('state:11 "${state.toString()}"'));
     socket.send("hello from flutter");
 
     print("object222222222 ${socket.connection.state.toString()}");
@@ -114,7 +114,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     MaterialPageRoute(builder: (context) => AutomaticScreen()));*/
               },
               title: "Automatic"),
-
           ButtonWidget(
               color: Color(0xFF757172),
               onPressed: () {
@@ -129,45 +128,98 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class ButtonWidget extends StatelessWidget {
-  const ButtonWidget({
+  ButtonWidget({
     super.key,
     required this.onPressed,
     this.title,
     this.color,
+    this.height = 0.075,
+    this.width = 0.4,
   });
 
   final VoidCallback onPressed;
   final String? title;
   final Color? color;
+  num width;
+  num height;
 
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
-    return Center(
-      child: Padding(
-        padding: EdgeInsets.only(bottom: 30),
-        child: GestureDetector(
-          onTap: onPressed,
-          child: Container(
-            decoration: BoxDecoration(
-                color: color ?? Colors.blue,
-                borderRadius: BorderRadius.circular(size.width * 0.1)),
-            height: size.height * 0.12,
-            width: size.width * 0.4,
-            child: Center(
-                child: Padding(
-              padding: EdgeInsets.only(
-                  left: size.width * 0.02, right: size.width * 0.02),
-              child: Text(
-                title ?? "",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: size.width * 0.045,
-                ),
-                textAlign: TextAlign.center,
+    return Padding(
+      padding: EdgeInsets.only(bottom: size.height * 0.01),
+      child: GestureDetector(
+        onTap: onPressed,
+        child: Container(
+          decoration: BoxDecoration(
+              color: Colors.blue,
+              //?? Colors.blue,
+              borderRadius: BorderRadius.circular(size.width * 0.05)),
+          height: size.height * height ?? 0.075,
+          width: size.width * width,
+          child: Center(
+              child: Padding(
+            padding: EdgeInsets.only(
+                left: size.width * 0.02, right: size.width * 0.02),
+            child: Text(
+              title ?? "",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: size.width * 0.045,
               ),
-            )),
+              textAlign: TextAlign.center,
+            ),
+          )),
+        ),
+      ),
+    );
+  }
+}
+
+class ButtonWidgetForStatus extends StatelessWidget {
+  ButtonWidgetForStatus({
+    super.key,
+    required this.onPressed,
+    this.title,
+    this.color,
+    this.height = 0.075,
+    this.width = 0.4,
+  });
+
+  final VoidCallback onPressed;
+  final String? title;
+  final Color? color;
+  num width;
+  num height;
+
+  @override
+  Widget build(BuildContext context) {
+    Size size = MediaQuery.of(context).size;
+    return Padding(
+      padding: EdgeInsets.only(bottom: size.height * 0.01),
+      child: GestureDetector(
+        onTap: onPressed,
+        child: Container(
+          decoration: BoxDecoration(
+            color: color ?? Colors.blue,
+            //?? Colors.blue,
+            borderRadius: BorderRadius.circular(size.width * 0.05),
           ),
+          height: size.height * height ?? 0.075,
+          width: size.width * width,
+          child: Center(
+              child: Padding(
+            padding: EdgeInsets.only(
+                left: size.width * 0.02, right: size.width * 0.02),
+            child: Text(
+              title ?? "",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: size.width * 0.06,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          )),
         ),
       ),
     );
