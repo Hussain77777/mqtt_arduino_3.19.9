@@ -13,21 +13,57 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'home_screen.dart';
 
-class BleScanner extends StatefulWidget {
+class BluetoothScreen extends StatefulWidget {
   @override
-  _BleScannerState createState() => _BleScannerState();
+  _BluetoothScreenState createState() => _BluetoothScreenState();
 }
 
-class _BleScannerState extends State<BleScanner> {
+class _BluetoothScreenState extends State<BluetoothScreen> {
   // FlutterBluePlus flutterBlue = FlutterBluePlus.instance;
   List<BluetoothDevice> devices = [];
   BluetoothDevice? connectedDevice;
   BluetoothCharacteristic? targetCharacterstic;
   bool isScanning = false;
-
+  List<LogDataTime> dataa = [];
   @override
   void initState() {
     super.initState();
+  }
+
+  int counter = 10;
+  late Timer _timer;
+
+  double percentValue = 1;
+
+  bool showResendCode = false;
+
+  void startTimer() {
+    print("aaaaaaaaaaaaaaaaaa");
+    counter = 5;
+
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      if (counter > 0) {
+        if (mounted) {
+          setState(() {
+            counter--;
+          });
+
+          if (counter == 0) {
+            _timer.cancel();
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ManualScreen(
+                  device: connectedDevice,
+                ),
+              ),
+            );
+          }
+        }
+      } else {
+        _timer.cancel();
+      }
+    });
   }
 
   bool isDeviceAvailable = false;
@@ -90,7 +126,7 @@ class _BleScannerState extends State<BleScanner> {
   @override
   void dispose() {
     FlutterBluePlus.stopScan();
-
+    _timer.cancel();
     super.dispose();
   }
 
@@ -100,6 +136,7 @@ class _BleScannerState extends State<BleScanner> {
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.black,
+   //     bottomNavigationBar: LogWidgetForBluetoothScreen(size: size, logData: dataa),
         appBar: AppBar(
           leading: !isScanning
               ? Container()
@@ -223,7 +260,8 @@ class _BleScannerState extends State<BleScanner> {
                               if (state == BluetoothConnectionState.connected) {
                                 print("inside connected ");
                                 logListener();
-                            /*    Navigator.pushReplacement(
+                           //     startTimer();
+                                /*    Navigator.pushReplacement(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => ManualScreen(
@@ -301,31 +339,40 @@ class _BleScannerState extends State<BleScanner> {
 
       String? stringValue = utf8.decode(value);
       print("stringValue  $stringValue");
-      if (mounted) {
+    /*  if (mounted) {
         AppUtils.showflushBar(
             stringValue.isNotEmpty ? stringValue : "Empty", context);
-      }
-     // if (stringValue=="manual") {
-      if (stringValue.contains("manual")) {
-        Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ManualScreen(
-                device: connectedDevice,
+      }*/
+      dataa.add(LogDataTime(title: stringValue,
+        //time: formattedDate
+      ));
+      if(mounted){
+        // if (stringValue=="manual") {
+        if (stringValue.contains("manual")) {
+          Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ManualScreen(
+                  device: connectedDevice,
+                ),
               ),
-            ),
-            (route) => false);
+                  (route) => false);
+        }
+        //    if (stringValue=="auto") {
+        if (stringValue.contains("auto")) {
+          Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => AutomaticScreen(
+                    device: connectedDevice,
+                  )),
+                  (route) => false);
+        }
+        setState(() {
+
+        });
       }
-  //    if (stringValue=="auto") {
-     if (stringValue.contains("auto")) {
-        Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(
-                builder: (context) => AutomaticScreen(
-                      device: connectedDevice,
-                    )),
-            (route) => false);
-      }
+
       //    AppUtils.showflushBar(stringValue??"Empty", context);
       DateTime date = DateTime.now();
       String formattedDate = DateFormat('HH:mm:ss').format(date);

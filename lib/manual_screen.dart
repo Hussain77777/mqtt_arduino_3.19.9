@@ -41,7 +41,7 @@ class _ManualScreenState extends State<ManualScreen> {
   List<LogDataTime> buttonList = [];
 
   bool isPumpOn = false;
-  String isStatusOn = "";
+  String isStatusOn = "Stop";
 
   checkDeviceStatus() {
     var subscription = widget.device?.connectionState
@@ -49,7 +49,7 @@ class _ManualScreenState extends State<ManualScreen> {
       if (state == BluetoothConnectionState.disconnected) {
         Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => BleScanner()),
+            MaterialPageRoute(builder: (context) => BluetoothScreen()),
             (route) => false);
 
         //   widget.device?.connect();
@@ -150,7 +150,7 @@ class _ManualScreenState extends State<ManualScreen> {
                 widget.device?.disconnect();
                 Navigator.pushAndRemoveUntil(
                     context,
-                    MaterialPageRoute(builder: (context) => BleScanner()),
+                    MaterialPageRoute(builder: (context) => BluetoothScreen()),
                     (route) => false);
                 AppUtils.showflushBar(
                     "Device Disconnected SuccessFully", context);
@@ -182,13 +182,15 @@ class _ManualScreenState extends State<ManualScreen> {
                   ); // Your state change code here
                 });
               },
-              child: Icon(
+              child: const Icon(
                 Icons.arrow_back,
                 color: Colors.white,
               )),
-          title: Text(
+          title: const Text(
             "Manual Mode",
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(
+              color: Colors.white,
+            ),
           ),
           centerTitle: true,
         ),
@@ -258,48 +260,56 @@ class _ManualScreenState extends State<ManualScreen> {
                     //top: size.height * 0.01,
                     left: size.width * 0.07,
                     right: size.width * 0.07),
-                child: Column(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    ButtonWidget(
-                        color: Color(0xFF4472c7),
-                        onPressed: () async {
-                          if (widget.device?.isConnected ?? false) {
-                            if (dataa.length > 1) {
-                              List<int> bytes = utf8.encode("U");
-                              await targetCharacterstic?.write(bytes);
+                    Column(
+                      children: [
+                        ButtonWidget(
+                            color: Color(0xFF4472c7),
+                            onPressed: () async {
+                              if (widget.device?.isConnected ?? false) {
+                                if (dataa.length > 1) {
+                                  List<int> bytes = utf8.encode("U");
+                                  await targetCharacterstic?.write(bytes);
 
-                              ();
-                            } else {
-                              AppUtils.showflushBar(
-                                  "Waiting for Previous Logs", context);
-                            }
-                          } else {
-                            AppUtils.showflushBar(
-                                "Your Device is not connected to any hardware",
-                                context);
-                          }
-                        },
-                        title: 'Reel Up '),
-                    ButtonWidget(
-                        color: Color(0xFF4473c5),
-                        onPressed: () async {
-                          if (widget.device?.isConnected ?? false) {
-                            if (dataa.length > 1) {
-                              List<int> bytes = utf8.encode("D");
-                              await targetCharacterstic?.write(bytes);
-                            } else {
-                              AppUtils.showflushBar(
-                                  "Waiting for Previous Logs", context);
-                            }
-                          } else {
-                            AppUtils.showflushBar(
-                                "Your Device is not connected to any hardware",
-                                context);
-                          }
-                        },
-                        title: 'Reel Down '),
+                                  ();
+                                } else {
+                                  AppUtils.showflushBar(
+                                      "Waiting for Previous Logs", context);
+                                }
+                              } else {
+                                AppUtils.showflushBar(
+                                    "Your Device is not connected to any hardware",
+                                    context);
+                              }
+                            },
+                            title: 'Reel Up '),
+                        ButtonWidget(
+                            color: Color(0xFF4473c5),
+                            onPressed: () async {
+                              if (widget.device?.isConnected ?? false) {
+                                if (dataa.length > 1) {
+                                  List<int> bytes = utf8.encode("D");
+                                  await targetCharacterstic?.write(bytes);
+                                } else {
+                                  AppUtils.showflushBar(
+                                      "Waiting for Previous Logs", context);
+                                }
+                              } else {
+                                AppUtils.showflushBar(
+                                    "Your Device is not connected to any hardware",
+                                    context);
+                              }
+                            },
+                            title: 'Reel Down '),
+                      ],
+                    ),
+                    ButtonWidgetForStatus(
+                        color: Color(0xFFee7d31),
+                        onPressed: () async {},
+                        title: isStatusOn),
                   ],
                 ),
               ),
@@ -355,8 +365,8 @@ class _ManualScreenState extends State<ManualScreen> {
                 padding: EdgeInsets.only(
                     left: size.width * 0.07, right: size.width * 0.07),
                 child: Row(
-                 // crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  // crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     ButtonWidget(
                         color: Color(0xFFee7d31),
@@ -376,12 +386,6 @@ class _ManualScreenState extends State<ManualScreen> {
                           }
                         },
                         title: 'Status'),
-                    ButtonWidgetForStatus(
-                        color: Color(0xFFee7d31),
-                        onPressed: () async {
-
-                        },
-                        title: isStatusOn),
                   ],
                 ),
               ),
@@ -523,8 +527,8 @@ class _ManualScreenState extends State<ManualScreen> {
             title: targetCharactersticForButtonStringValue,
           ),
         );*/
-        isStatusOn=targetCharactersticForStatusStringValue;
-       /* if (targetCharactersticForStatusStringValue == "forward") {
+        isStatusOn = targetCharactersticForStatusStringValue;
+        /* if (targetCharactersticForStatusStringValue == "forward") {
           isStatusOn = true;
         }
         if (targetCharactersticForStatusStringValue == "reverse") {

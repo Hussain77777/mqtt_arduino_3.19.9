@@ -39,7 +39,7 @@ class _MyAppState extends State<MyApp> {
         useMaterial3: true,
       ),
 
-      home: BleScanner(),
+      home: BluetoothScreen(),
     );
   }
 }

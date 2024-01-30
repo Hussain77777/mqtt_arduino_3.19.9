@@ -38,25 +38,29 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
   List<String> a = [];
 
   List<BluetoothService>? services;
+
   Future loadData() async {
-    SharedPreferences prefs=await SharedPreferences.getInstance();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
     List<String>? listString = prefs.getStringList('list');
-    localData = listString?.map((item) => LogDataTime.fromMap(json.decode(item))).toList();
+    localData = listString
+        ?.map((item) => LogDataTime.fromMap(json.decode(item)))
+        .toList();
     log("bbbbbbbbbbbbbbbbbbb ${listString?.map((item) => LogDataTime.fromMap(json.decode(item))).toList()}");
     log("ccccccccc $localData");
     localData?.forEach((element) {
-     // print("ccccccccc ${element.time}");
+      // print("ccccccccc ${element.time}");
       print("ccccccccc ${element.title}");
     });
     //This command gets us the list stored with key name "list"
   }
+
   checkDeviceStatus() async {
     var subscription = widget.device?.connectionState
         .listen((BluetoothConnectionState state) async {
       if (state == BluetoothConnectionState.disconnected) {
         Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => BleScanner()),
+            MaterialPageRoute(builder: (context) => BluetoothScreen()),
             (route) => false);
 
         AppUtils.showflushBar(
@@ -93,7 +97,7 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
   @override
   void initState() {
     loadData();
-  //  widget.logList?.removeLast();
+    //  widget.logList?.removeLast();
     widget.logList?.forEach((element) {
       dataa.add(element);
     });
@@ -115,7 +119,8 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
     return SafeArea(
-      child: Scaffold(backgroundColor: Colors.black,
+      child: Scaffold(
+        backgroundColor: Colors.black,
         bottomNavigationBar: LogWidgetForAutomaticMode(
           logData: dataa,
           size: size,
@@ -145,7 +150,7 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
                 widget.device?.disconnect();
                 Navigator.pushAndRemoveUntil(
                     context,
-                    MaterialPageRoute(builder: (context) => BleScanner()),
+                    MaterialPageRoute(builder: (context) => BluetoothScreen()),
                     (route) => false);
                 AppUtils.showflushBar(
                     "Device Disconnected SuccessFully", context);
@@ -154,8 +159,8 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
                 padding: EdgeInsets.only(right: 10),
                 child: Text(
                   "Disconnect",
-                  style:
-                      TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, color: Colors.white),
                 ),
               ),
             ),
@@ -175,7 +180,6 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
               SizedBox(
                 height: size.height * 0.05,
               ),
-
               Padding(
                 padding: EdgeInsets.only(
                   //   top: size.height * 0.005,
@@ -198,7 +202,8 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
                                   builder: (context) => ManualScreen(
                                         logList: dataa,
                                         device: widget.device,
-                                        targetCharacterstic: targetCharacterstic,
+                                        targetCharacterstic:
+                                            targetCharacterstic,
                                       ))); // Your state change code here
                         });
                       } else {
@@ -227,11 +232,9 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
                     onPressed: () async {
                       print("vvvvvvvvvvvvvvvvvv");
 
-
                       if (widget.device?.isConnected ?? false) {
                         List<int> bytes = utf8.encode("Q");
                         await targetCharacterstic?.write(bytes);
-
                       } else {
                         AppUtils.showflushBar(
                             "Your Device is not connected to any hardware",
@@ -246,9 +249,11 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
       ),
     );
   }
-  List<String> usrList =[];
+
+  List<String> usrList = [];
+
   Future<StreamSubscription<List<int>>?> buildLogListener() async {
-    SharedPreferences prefs=await SharedPreferences.getInstance();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
     return targetCharacterstic?.lastValueStream.listen((value) {
       print("stringValue  $value");
       // Decode the value to string
@@ -257,7 +262,9 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
       DateTime date = DateTime.now();
       String formattedDate = DateFormat('HH:mm:ss').format(date);
       if (stringValue != null) {
-        dataa.add(LogDataTime(title: stringValue, //time: formattedDate
+        dataa.add(LogDataTime(
+          title: stringValue,
+          //time: formattedDate
         ));
         if (usrList.length > 100) {
           prefs.clear();
@@ -270,7 +277,6 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
         if (mounted) {
           setState(() {});
         }
-
       }
     });
   }
@@ -278,21 +284,24 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
 
 class LogDataTime {
   final String title;
+
 //  final String time;
 
-  LogDataTime({required this.title, //required this.time
+  LogDataTime({
+    required this.title, //required this.time
   });
 
   LogDataTime.fromMap(
       Map map) // This Function helps to convert our Map into our User Object
       : this.title = map["title"];
+
   //      this.time = map["time"];
 
   Map toMap() {
     // This Function helps to convert our User Object into a Map.
     return {
       "title": this.title,
-    //  "time": this.time,
+      //  "time": this.time,
     };
   }
 }
@@ -322,7 +331,7 @@ class LogWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: List.generate(logData.length, (index) {
             return Text(
-             // "${logData[index].time} -> ${logData[index].title}",
+              // "${logData[index].time} -> ${logData[index].title}",
               "${logData[index].title}",
               style: TextStyle(color: Colors.white),
             );
@@ -332,6 +341,7 @@ class LogWidget extends StatelessWidget {
     );
   }
 }
+
 class LogWidgetForAutomaticMode extends StatelessWidget {
   const LogWidgetForAutomaticMode({
     super.key,
@@ -357,7 +367,43 @@ class LogWidgetForAutomaticMode extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: List.generate(logData.length, (index) {
             return Text(
-             // "${logData[index].time} -> ${logData[index].title}",
+              // "${logData[index].time} -> ${logData[index].title}",
+              "${logData[index].title}",
+              style: TextStyle(color: Colors.white),
+            );
+          }),
+        ),
+      ),
+    );
+  }
+}
+
+class LogWidgetForBluetoothScreen extends StatelessWidget {
+  const LogWidgetForBluetoothScreen({
+    super.key,
+    required this.size,
+    required this.logData,
+  });
+
+  final Size size;
+  final List<LogDataTime> logData;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding:
+          EdgeInsets.only(top: size.height * 0.01, left: size.width * 0.03),
+      color: Colors.black,
+      width: size.width,
+      height: size.height * 0.3,
+
+      // margin: EdgeInsets.only(left: size.width*0.1,right: size.width*0.1,),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: List.generate(logData.length, (index) {
+            return Text(
+              // "${logData[index].time} -> ${logData[index].title}",
               "${logData[index].title}",
               style: TextStyle(color: Colors.white),
             );
