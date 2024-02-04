@@ -29,6 +29,7 @@ class ManualScreen extends StatefulWidget {
 }
 
 class _ManualScreenState extends State<ManualScreen> {
+  ScrollController _scrollController1 = ScrollController();
   MQTTClientManager mqttClientManager = MQTTClientManager();
   TextEditingController controller = TextEditingController();
   BluetoothCharacteristic? targetCharacterstic11;
@@ -47,6 +48,7 @@ class _ManualScreenState extends State<ManualScreen> {
     var subscription = widget.device?.connectionState
         .listen((BluetoothConnectionState state) async {
       if (state == BluetoothConnectionState.disconnected) {
+        if(mounted){
         Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) => BluetoothScreen()),
@@ -55,7 +57,7 @@ class _ManualScreenState extends State<ManualScreen> {
         //   widget.device?.connect();
         AppUtils.showflushBar(
             "Your Device disConnected ${widget.device?.platformName}", context);
-      }
+      }}
       if (state == BluetoothConnectionState.connected) {}
     });
   }
@@ -63,13 +65,36 @@ class _ManualScreenState extends State<ManualScreen> {
   @override
   void initState() {
     // widget.logList?.removeLast();
-    widget.logList?.forEach((element) {
+       widget.logList?.forEach((element) {
       dataa.add(element);
     });
+
     //   logData = widget.logList ?? [];
     checkDeviceStatus();
     logListener();
+  /*  WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      double minScrollExtent1 = _scrollController1.position.minScrollExtent;
+      double maxScrollExtent1 = _scrollController1.position.maxScrollExtent;
+      animateToMaxMin(
+        maxScrollExtent1,
+        minScrollExtent1,
+        maxScrollExtent1,
+        25,
+        _scrollController1,
+      );
+    });*/
     super.initState();
+  }
+
+  animateToMaxMin(double max, double min, double direction, int seconds,
+      ScrollController scrollController) {
+    scrollController
+        .animateTo(direction,
+            duration: Duration(seconds: seconds), curve: Curves.linear)
+        .then((value) {
+      direction = direction == max ? min : max;
+      animateToMaxMin(max, min, direction, seconds, scrollController);
+    });
   }
 
   BluetoothCharacteristic? targetCharacterstic;
@@ -142,7 +167,11 @@ class _ManualScreenState extends State<ManualScreen> {
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.black,
-        bottomNavigationBar: LogWidget(size: size, logData: dataa),
+         bottomNavigationBar: LogWidget(
+          size: size,
+          logData: dataa,
+          scrollController: _scrollController1,
+        ),
         appBar: AppBar(
           actions: [
             InkWell(
@@ -176,7 +205,6 @@ class _ManualScreenState extends State<ManualScreen> {
                       builder: (context) => AutomaticScreen(
                         logList: dataa,
                         device: widget.device,
-                        //       targetCharacterstic: targetCharacterstic,
                       ),
                     ),
                   ); // Your state change code here
@@ -194,254 +222,316 @@ class _ManualScreenState extends State<ManualScreen> {
           ),
           centerTitle: true,
         ),
-        body: SingleChildScrollView(
-          physics: NeverScrollableScrollPhysics(),
-          child: //(isLoading)?Center(child: CircularProgressIndicator()):
-              Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              SizedBox(
-                height: size.height * 0.02,
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            SizedBox(
+              height: size.height * 0.02,
+            ),
+            Padding(
+              padding: EdgeInsets.only(
+                left: size.width * 0.07,
+                right: size.width * 0.07,
               ),
-              Padding(
-                padding: EdgeInsets.only(
-                  //   top: size.height * 0.005,
-                  left: size.width * 0.07,
-                  right: size.width * 0.07,
-                ),
-                child: Column(
-                  // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ButtonWidget(
-                        color: Color(0xFF70ad46),
-                        onPressed: () async {
-                          if (widget.device?.isConnected ?? false) {
-                            print("bbbbbbbbbbbbbbbbbbbb ${dataa.length}");
-                            if (dataa.length > 1) {
-                              List<int> bytes = utf8.encode("A");
-                              await targetCharacterstic?.write(bytes);
-                              dataa.removeLast();
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => AutomaticScreen(
-                                    logList: dataa,
-                                    device: widget.device,
-                                    //targetCharacterstic: targetCharacterstic,
-                                  ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ButtonWidget(
+                      color: Color(0xFF70ad46),
+                      onPressed: () async {
+                        if (widget.device?.isConnected ?? false) {
+                          print("bbbbbbbbbbbbbbbbbbbb ${dataa.length}");
+                          if (dataa.length > 1) {
+                            List<int> bytes = utf8.encode("A");
+                            await targetCharacterstic?.write(bytes);
+                            dataa.removeLast();
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => AutomaticScreen(
+                                  logList: dataa,
+                                  device: widget.device,
+                                  //targetCharacterstic: targetCharacterstic,
                                 ),
-                              ); //
-                              ();
-                            } else {
-                              AppUtils.showflushBar(
-                                  "Waiting for Previous Logs", context);
-                            }
+                              ),
+                            ); //
+                            ();
                           } else {
                             AppUtils.showflushBar(
-                                "Your Device is not connected to any hardware",
-                                context);
+                                "Waiting for Previous Logs", context);
                           }
-                        },
-                        title: 'Automatic Mode '),
-                  ],
-                ),
+                        } else {
+                          AppUtils.showflushBar(
+                              "Your Device is not connected to any hardware",
+                              context);
+                        }
+                      },
+                      title: 'Automatic Mode ',height:0.07 ),
+                ],
               ),
-              Divider(
-                height: size.height * 0.01,
-                color: Colors.white,
+            ),
+            Divider(
+              height: size.height * 0.01,
+              color: Colors.white,
+            ),
+            SizedBox(
+              height: size.height * 0.01,
+            ),
+            Padding(
+              padding: EdgeInsets.only(
+                //top: size.height * 0.01,
+                left: size.width * 0.07,
+                right: size.width * 0.07,
               ),
-              SizedBox(
-                height: size.height * 0.01,
-              ),
-              Padding(
-                padding: EdgeInsets.only(
-                    //top: size.height * 0.01,
-                    left: size.width * 0.07,
-                    right: size.width * 0.07),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Column(
-                      children: [
-                        ButtonWidget(
-                            color: Color(0xFF4472c7),
-                            onPressed: () async {
-                              if (widget.device?.isConnected ?? false) {
-                                if (dataa.length > 1) {
-                                  List<int> bytes = utf8.encode("U");
-                                  await targetCharacterstic?.write(bytes);
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Column(
+                    children: [
+                      ButtonWidget(
+                          color: Color(0xFF4472c7),
+                          onPressed: () async {
+                            if (widget.device?.isConnected ?? false) {
+                              if (dataa.length > 1) {
+                                List<int> bytes = utf8.encode("U");
+                                await targetCharacterstic?.write(bytes);
 
-                                  ();
-                                } else {
-                                  AppUtils.showflushBar(
-                                      "Waiting for Previous Logs", context);
-                                }
+                                ();
                               } else {
                                 AppUtils.showflushBar(
-                                    "Your Device is not connected to any hardware",
-                                    context);
+                                    "Waiting for Previous Logs", context);
                               }
-                            },
-                            title: 'Reel Up '),
-                        ButtonWidget(
-                            color: Color(0xFF4473c5),
-                            onPressed: () async {
-                              if (widget.device?.isConnected ?? false) {
-                                if (dataa.length > 1) {
-                                  List<int> bytes = utf8.encode("D");
-                                  await targetCharacterstic?.write(bytes);
-                                } else {
-                                  AppUtils.showflushBar(
-                                      "Waiting for Previous Logs", context);
-                                }
-                              } else {
-                                AppUtils.showflushBar(
-                                    "Your Device is not connected to any hardware",
-                                    context);
-                              }
-                            },
-                            title: 'Reel Down '),
-                      ],
-                    ),
-                    ButtonWidgetForStatus(
-                        color: Color(0xFFee7d31),
-                        onPressed: () async {},
-                        title: isStatusOn),
-                  ],
-                ),
-              ),
-              Divider(
-                height: size.height * 0.01,
-                color: Colors.white,
-              ),
-              SizedBox(
-                height: size.height * 0.01,
-              ),
-
-              Padding(
-                padding: EdgeInsets.only(
-                    left: size.width * 0.07, right: size.width * 0.07),
-                child: Row(
-                  //    crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    ButtonWidget(
-                        color: Color(0xFFfe0000),
-                        onPressed: () async {
-                          if (widget.device?.isConnected ?? false) {
-                            if (dataa.length > 1) {
-                              List<int> bytes = utf8.encode("P");
-                              await targetCharacterstic?.write(bytes);
                             } else {
                               AppUtils.showflushBar(
-                                  "Waiting for Previous Logs", context);
+                                  "Your Device is not connected to any hardware",
+                                  context);
                             }
+                          },
+                          title: 'Reel Up '),
+                      ButtonWidget(
+                          color: Color(0xFF4473c5),
+                          onPressed: () async {
+                            if (widget.device?.isConnected ?? false) {
+                              if (dataa.length > 1) {
+                                List<int> bytes = utf8.encode("D");
+                                await targetCharacterstic?.write(bytes);
+                              } else {
+                                AppUtils.showflushBar(
+                                    "Waiting for Previous Logs", context);
+                              }
+                            } else {
+                              AppUtils.showflushBar(
+                                  "Your Device is not connected to any hardware",
+                                  context);
+                            }
+                          },
+                          title: 'Reel Down '),
+                    ],
+                  ),
+                  Column(
+                    children: [
+                      ButtonWidgetForStatus(
+                          color: Color(0xFFee7d31),
+                          onPressed: () async {},
+                          title: isStatusOn),
+                      Image.asset(
+                        "assets/updown.jpeg",
+                        width: size.width * 0.20,
+                      )
+                    ],
+                  )
+                ],
+              ),
+            ),
+            Divider(
+              height: size.height * 0.01,
+              color: Colors.white,
+            ),
+            SizedBox(
+              height: size.height * 0.01,
+            ),
+
+            Padding(
+              padding: EdgeInsets.only(
+                  left: size.width * 0.07, right: size.width * 0.07),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  ButtonWidget(
+                      color: const Color(0xFFfe0000),
+                      onPressed: () async {
+                        if (widget.device?.isConnected ?? false) {
+                          if (dataa.length > 1) {
+                            List<int> bytes = utf8.encode("P");
+                            await targetCharacterstic?.write(bytes);
                           } else {
                             AppUtils.showflushBar(
-                                "Your Device is not connected to any hardware",
-                                context);
+                                "Waiting for Previous Logs", context);
                           }
-                        },
-                        title: 'Pump'),
-                    ButtonWidgetForStatus(
+                        } else {
+                          AppUtils.showflushBar(
+                              "Your Device is not connected to any hardware",
+                              context);
+                        }
+                      },
+                      title: 'Pump'),
+                  Column(
+                    children: [
+                      ButtonWidgetForStatus(
                         color: (isPumpOn) ? Colors.green : Colors.red,
+                        title: (isPumpOn) ? 'On' : 'Off',
                         onPressed: () async {},
-                        title: (isPumpOn) ? 'On' : 'Off'),
-                    //),
-                  ],
-                ),
+                      ),
+                      Image.asset(
+                        "assets/motor.jpeg",
+                        width: size.width * 0.20,
+                      )
+                    ],
+                  ),
+
+                  //),
+                ],
               ),
-              Divider(
-                height: size.height * 0.01,
-                color: Colors.white,
-              ),
-              SizedBox(
-                height: size.height * 0.01,
-              ),
-              Padding(
-                padding: EdgeInsets.only(
-                    left: size.width * 0.07, right: size.width * 0.07),
-                child: Row(
-                  // crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    ButtonWidget(
-                        color: Color(0xFFee7d31),
-                        onPressed: () async {
-                          if (widget.device?.isConnected ?? false) {
-                            if (dataa.length > 1) {
-                              List<int> bytes = utf8.encode("Q");
-                              await targetCharacterstic?.write(bytes);
-                            } else {
-                              AppUtils.showflushBar(
-                                  "Waiting for Previous Logs", context);
-                            }
+            ),
+            SizedBox(
+              height: size.height * 0.01,
+            ),
+            Divider(
+              height: size.height * 0.01,
+              color: Colors.white,
+            ),
+            SizedBox(
+              height: size.height * 0.01,
+            ),
+            Padding(
+              padding: EdgeInsets.only(
+                  left: size.width * 0.07, right: size.width * 0.07),
+              child: Row(
+                // crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  ButtonWidget(
+                      color: const Color(0xFFee7d31),
+                      onPressed: () async {
+                        if (widget.device?.isConnected ?? false) {
+                          if (dataa.length > 1) {
+                            List<int> bytes = utf8.encode("Q");
+                            await targetCharacterstic?.write(bytes);
                           } else {
                             AppUtils.showflushBar(
-                                "Your Device is not connected to any hardware",
-                                context);
+                                "Waiting for Previous Logs", context);
                           }
-                        },
-                        title: 'Status'),
-                  ],
-                ),
+                        } else {
+                          AppUtils.showflushBar(
+                              "Your Device is not connected to any hardware",
+                              context);
+                        }
+                      },
+                      title: 'Status'),
+                ],
               ),
-              Padding(
-                padding: EdgeInsets.only(
-                    left: size.width * 0.07, right: size.width * 0.07),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    ButtonWidget(
-                        color: Color(0xFFee7d31),
-                        onPressed: () async {
-                          if (widget.device?.isConnected ?? false) {
-                            if (dataa.length > 1) {
-                              List<int> bytes = utf8.encode("C");
-                              await targetCharacterstic?.write(bytes);
+            ),
+            Padding(
+              padding: EdgeInsets.only(
+                  left: size.width * 0.07, right: size.width * 0.07),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      ButtonWidget(
+                          color: const Color(0xFFee7d31),
+                          onPressed: () async {
+                            if (widget.device?.isConnected ?? false) {
+                              if (dataa.length > 1) {
+                                List<int> bytes = utf8.encode("C");
+                                await targetCharacterstic?.write(bytes);
+                              } else {
+                                AppUtils.showflushBar(
+                                    "Waiting for Previous Logs", context);
+                              }
                             } else {
                               AppUtils.showflushBar(
-                                  "Waiting for Previous Logs", context);
+                                  "Your Device is not connected to any hardware",
+                                  context);
                             }
-                          } else {
-                            AppUtils.showflushBar(
-                                "Your Device is not connected to any hardware",
-                                context);
-                          }
-                        },
-                        title: 'Calibration '),
-                    ButtonWidget(
-                        color: Color(0xFFee7d31),
-                        onPressed: () async {
-                          if (widget.device?.isConnected ?? false) {
-                            if (dataa.length > 1) {
-                              List<int> bytes = utf8.encode("T");
-                              await targetCharacterstic?.write(bytes);
+                          },
+                          title: 'Calibration '),
+                      ButtonWidget(height:0.07,
+                          color: const Color(0xFFee7d31),
+                          onPressed: () async {
+                            if (widget.device?.isConnected ?? false) {
+                              if (dataa.length > 1) {
+                                List<int> bytes = utf8.encode("T");
+                                await targetCharacterstic?.write(bytes);
+                              } else {
+                                AppUtils.showflushBar(
+                                    "Waiting for Previous Logs", context);
+                              }
                             } else {
                               AppUtils.showflushBar(
-                                  "Waiting for Previous Logs", context);
+                                  "Your Device is not connected to any hardware",
+                                  context);
                             }
-                          } else {
-                            AppUtils.showflushBar(
-                                "Your Device is not connected to any hardware",
-                                context);
-                          }
-                        },
-                        title: 'Trouble  Shooting '),
-                  ],
-                ),
+                          },
+                          title: 'Trouble  Shooting '),
+                    ],
+                  ),
+                  Image.asset(
+                    "assets/setting.jpeg",
+                    width: size.width * 0.3,
+                  )
+                ],
               ),
-              Divider(
-                height: size.height * 0.01,
-                color: Colors.white,
+            ),
+            Divider(
+              height: size.height * 0.01,
+              color: Colors.white,
+            ),
+           /* Container(
+              padding: EdgeInsets.only(
+                  top: size.height * 0.01, left: size.width * 0.03),
+              color: Colors.black,
+              width: size.width,
+              height: size.height * 0.18,
+
+              // margin: EdgeInsets.only(left: size.width*0.1,right: size.width*0.1,),
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: ListView.builder(
+                    controller: _scrollController1,
+                  //  reverse: true,
+                    shrinkWrap: true,
+                    itemCount: logData.length,
+                    itemBuilder: (context, index) {
+                      return Text(
+                        // "${logData[index].time} -> ${logData[index].title}",
+                        dataa[index].title,
+                        style: const TextStyle(color: Colors.white),
+                      );
+                    }),
               ),
-              //  SizedBox(height: size.height*0.02,),
-            ],
-          ),
+              *//* child: SingleChildScrollView(
+        child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: List.generate(logData.length, (index) {
+          return Text(
+            // "${logData[index].time} -> ${logData[index].title}",
+            logData[index].title,
+            style: const TextStyle(color: Colors.white),
+          );
+        }),
+        ),
+      ),*//*
+            )*/
+            //  SizedBox(height: size.height*0.02,),
+          ],
         ),
       ),
     );
@@ -483,18 +573,18 @@ class _ManualScreenState extends State<ManualScreen> {
   Future<StreamSubscription<List<int>>?> buildLogListenerForButton() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return targetCharactersticForButton?.lastValueStream.listen((value) {
-      print("targetCharactersticForButton stringValue  $value");
+      print("targetCharacteristicForButton stringValue  $value");
       // Decode the value to string
       String targetCharactersticForButtonStringValue = utf8.decode(value);
       print(
-          "targetCharactersticForButton stringValue  $targetCharactersticForButtonStringValue");
+          "targetCharacteristicForButton stringValue  $targetCharactersticForButtonStringValue");
       DateTime date = DateTime.now();
       String formattedDate = DateFormat('HH:mm:ss').format(date);
 
       if (targetCharactersticForButtonStringValue != null) {
         /*   buttonList.add(
           LogDataTime(
-            title: targetCharactersticForButtonStringValue,
+            title: targetCharacteristicForButtonStringValue,
           ),
         );*/
         if (targetCharactersticForButtonStringValue == "pump_on") {
@@ -513,11 +603,11 @@ class _ManualScreenState extends State<ManualScreen> {
   Future<StreamSubscription<List<int>>?> buildLogListenerForStatus() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return targetCharactersticForStatus?.lastValueStream.listen((value) {
-      print("targetCharactersticForStatus stringValue  $value");
+      print("targetCharacteristicForStatus stringValue  $value");
       // Decode the value to string
       String targetCharactersticForStatusStringValue = utf8.decode(value);
       print(
-          "targetCharactersticForStatus stringValue  $targetCharactersticForStatusStringValue");
+          "targetCharacteristicForStatus stringValue  $targetCharactersticForStatusStringValue");
       DateTime date = DateTime.now();
       String formattedDate = DateFormat('HH:mm:ss').format(date);
 

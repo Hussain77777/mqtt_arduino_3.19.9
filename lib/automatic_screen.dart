@@ -58,6 +58,7 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
     var subscription = widget.device?.connectionState
         .listen((BluetoothConnectionState state) async {
       if (state == BluetoothConnectionState.disconnected) {
+        if(mounted){
         Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) => BluetoothScreen()),
@@ -65,7 +66,7 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
 
         AppUtils.showflushBar(
             "Your Device disconnected ${widget.device?.platformName}", context);
-      }
+      }}
 
       if (state == BluetoothConnectionState.connected) {}
     });
@@ -186,7 +187,7 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
                   left: size.width * 0.07,
                   right: size.width * 0.07,
                 ),
-                child: ButtonWidget(
+                child: ButtonWidget(height: 0.07,
                     color: Colors.orange,
                     onPressed: () async {
                       print("vvvvvvvvvvvvvvvvvv");
@@ -300,7 +301,7 @@ class LogDataTime {
   Map toMap() {
     // This Function helps to convert our User Object into a Map.
     return {
-      "title": this.title,
+      "title": title,
       //  "time": this.time,
     };
   }
@@ -311,8 +312,10 @@ class LogWidget extends StatelessWidget {
     super.key,
     required this.size,
     required this.logData,
+    this.scrollController,
   });
 
+  final ScrollController? scrollController;
   final Size size;
   final List<LogDataTime> logData;
 
@@ -326,18 +329,33 @@ class LogWidget extends StatelessWidget {
       height: size.height * 0.18,
 
       // margin: EdgeInsets.only(left: size.width*0.1,right: size.width*0.1,),
-      child: SingleChildScrollView(
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: ListView.builder(
+            controller: scrollController,
+          //  reverse: true,
+            shrinkWrap: true,
+            itemCount: logData.length,
+            itemBuilder: (context, index) {
+              return Text(
+                // "${logData[index].time} -> ${logData[index].title}",
+                logData[index].title,
+                style: const TextStyle(color: Colors.white),
+              );
+            }),
+      ),
+      /* child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: List.generate(logData.length, (index) {
             return Text(
               // "${logData[index].time} -> ${logData[index].title}",
-              "${logData[index].title}",
-              style: TextStyle(color: Colors.white),
+              logData[index].title,
+              style: const TextStyle(color: Colors.white),
             );
           }),
         ),
-      ),
+      ),*/
     );
   }
 }
@@ -368,7 +386,7 @@ class LogWidgetForAutomaticMode extends StatelessWidget {
           children: List.generate(logData.length, (index) {
             return Text(
               // "${logData[index].time} -> ${logData[index].title}",
-              "${logData[index].title}",
+              logData[index].title,
               style: TextStyle(color: Colors.white),
             );
           }),

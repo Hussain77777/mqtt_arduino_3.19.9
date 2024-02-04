@@ -5,6 +5,7 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:mqtt_arduino/automatic_screen.dart';
 import 'package:mqtt_arduino/home_screen.dart';
 import 'package:mqtt_arduino/mqtt.dart';
+import 'package:mqtt_arduino/scroll-screen.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:flutter/material.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -39,7 +40,8 @@ class _MyAppState extends State<MyApp> {
         useMaterial3: true,
       ),
 
-      home: BluetoothScreen(),
+    home: BluetoothScreen(),
+    // home: const ScrollScreen(),
     );
   }
 }

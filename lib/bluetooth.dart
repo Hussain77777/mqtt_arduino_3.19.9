@@ -31,13 +31,13 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
   }
 
   int counter = 10;
-  late Timer _timer;
+  //late Timer _timer;
 
   double percentValue = 1;
 
   bool showResendCode = false;
 
-  void startTimer() {
+/*  void startTimer() {
     print("aaaaaaaaaaaaaaaaaa");
     counter = 5;
 
@@ -64,7 +64,7 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
         _timer.cancel();
       }
     });
-  }
+  }*/
 
   bool isDeviceAvailable = false;
 
@@ -126,7 +126,7 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
   @override
   void dispose() {
     FlutterBluePlus.stopScan();
-    _timer.cancel();
+  //  _timer.cancel();
     super.dispose();
   }
 
@@ -269,10 +269,11 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
                                     ),
                                   ),
                                 );*/
-                                AppUtils.showflushBar(
+                                if(mounted) {
+                                  AppUtils.showflushBar(
                                     "Device Connected Successfully with ${connectedDevice?.platformName}",
                                     context);
-                              }
+                                }}
                             });
                           },
                           child: Text(
@@ -368,9 +369,9 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
                   )),
                   (route) => false);
         }
-        setState(() {
+       /* setState(() {
 
-        });
+        });*/
       }
 
       //    AppUtils.showflushBar(stringValue??"Empty", context);

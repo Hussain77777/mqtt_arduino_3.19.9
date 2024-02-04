@@ -133,7 +133,7 @@ class ButtonWidget extends StatelessWidget {
     required this.onPressed,
     this.title,
     this.color,
-    this.height = 0.075,
+    this.height = 0.06,
     this.width = 0.4,
   });
 
@@ -182,7 +182,7 @@ class ButtonWidgetForStatus extends StatelessWidget {
     required this.onPressed,
     this.title,
     this.color,
-    this.height = 0.075,
+    this.height = 0.055,
     this.width = 0.4,
   });
 
