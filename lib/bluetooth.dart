@@ -14,6 +14,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'home_screen.dart';
 
 class BluetoothScreen extends StatefulWidget {
+  const BluetoothScreen({super.key});
+
   @override
   _BluetoothScreenState createState() => _BluetoothScreenState();
 }
@@ -364,7 +366,7 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
           Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(
-                  builder: (context) => AutomaticScreen(
+                  builder: (context) => ManualScreen(
                     device: connectedDevice,
                   )),
                   (route) => false);

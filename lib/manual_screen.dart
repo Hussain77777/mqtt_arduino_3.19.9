@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -74,17 +75,7 @@ class _ManualScreenState extends State<ManualScreen> {
     //   logData = widget.logList ?? [];
     checkDeviceStatus();
     logListener();
-    /*  WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      double minScrollExtent1 = _scrollController1.position.minScrollExtent;
-      double maxScrollExtent1 = _scrollController1.position.maxScrollExtent;
-      animateToMaxMin(
-        maxScrollExtent1,
-        minScrollExtent1,
-        maxScrollExtent1,
-        25,
-        _scrollController1,
-      );
-    });*/
+
     super.initState();
   }
 
@@ -108,19 +99,11 @@ class _ManualScreenState extends State<ManualScreen> {
       print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
       List<BluetoothService>? services =
       await widget.device?.discoverServices();
-      /*  widget.targetCharacterstic?.setNotifyValue(true);
-      widget.targetCharacterstic?.lastValueStream.listen((value) {
-        print("stringValue11  $value");
-        // Decode the value to string
-        String stringValue = utf8.decode(value);
-        print("stringValue11  $stringValue");
-        logData.add(stringValue);
-        if (mounted) {
-          setState(() {});
-        }
-      });*/
+
       services?.forEach((service) async {
-        print("service ${service.characteristics}");
+        if (kDebugMode) {
+          print("service ${service.characteristics}");
+        }
 
         if (service.uuid.toString() == "fff0") {
           service.characteristics.forEach((characteristics) {
@@ -156,7 +139,7 @@ class _ManualScreenState extends State<ManualScreen> {
 
   @override
   void dispose() {
-//widget.device?.disconnect();
+
     print("sd fmsdf sdfsdf");
 
     // TODO: implement dispose
@@ -188,7 +171,7 @@ class _ManualScreenState extends State<ManualScreen> {
                 AppUtils.showflushBar(
                     "Device Disconnected SuccessFully", context);
               },
-              child: Padding(
+              child: const Padding(
                 padding: EdgeInsets.only(right: 10),
                 child: Text(
                   "Disconnect",
@@ -246,7 +229,9 @@ class _ManualScreenState extends State<ManualScreen> {
                       color: Color(0xFF70ad46),
                       onPressed: () async {
                         if (widget.device?.isConnected ?? false) {
-                          print("bbbbbbbbbbbbbbbbbbbb ${dataa.length}");
+                          if (kDebugMode) {
+                            print("bbbbbbbbbbbbbbbbbbbb ${dataa.length}");
+                          }
                           if (dataa.length > 1) {
                             List<int> bytes = utf8.encode("A");
                             await targetCharacterstic?.write(bytes);
@@ -297,7 +282,7 @@ class _ManualScreenState extends State<ManualScreen> {
                   Column(
                     children: [
                       ButtonWidget(
-                          color: Color(0xFF4472c7),
+                          color: const Color(0xFF4472c7),
                           onPressed: () async {
                             if (widget.device?.isConnected ?? false) {
                               if (dataa.length > 1) {
@@ -317,7 +302,7 @@ class _ManualScreenState extends State<ManualScreen> {
                           },
                           title: 'Reel Up '),
                       ButtonWidget(
-                          color: Color(0xFF4473c5),
+                          color: const Color(0xFF4473c5),
                           onPressed: () async {
                             if (widget.device?.isConnected ?? false) {
                               if (dataa.length > 1) {
