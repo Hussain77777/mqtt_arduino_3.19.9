@@ -48,16 +48,18 @@ class _ManualScreenState extends State<ManualScreen> {
     var subscription = widget.device?.connectionState
         .listen((BluetoothConnectionState state) async {
       if (state == BluetoothConnectionState.disconnected) {
-        if(mounted){
-        Navigator.pushAndRemoveUntil(
+        if (mounted) {
+          Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) => BluetoothScreen()),
-            (route) => false);
+                (route) => false,);
 
-        //   widget.device?.connect();
-        AppUtils.showflushBar(
-            "Your Device disConnected ${widget.device?.platformName}", context);
-      }}
+          //   widget.device?.connect();
+          AppUtils.showflushBar(
+              "Your Device disConnected ${widget.device?.platformName}",
+              context);
+        }
+      }
       if (state == BluetoothConnectionState.connected) {}
     });
   }
@@ -65,14 +67,14 @@ class _ManualScreenState extends State<ManualScreen> {
   @override
   void initState() {
     // widget.logList?.removeLast();
-       widget.logList?.forEach((element) {
+    widget.logList?.forEach((element) {
       dataa.add(element);
     });
 
     //   logData = widget.logList ?? [];
     checkDeviceStatus();
     logListener();
-  /*  WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+    /*  WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       double minScrollExtent1 = _scrollController1.position.minScrollExtent;
       double maxScrollExtent1 = _scrollController1.position.maxScrollExtent;
       animateToMaxMin(
@@ -90,7 +92,7 @@ class _ManualScreenState extends State<ManualScreen> {
       ScrollController scrollController) {
     scrollController
         .animateTo(direction,
-            duration: Duration(seconds: seconds), curve: Curves.linear)
+        duration: Duration(seconds: seconds), curve: Curves.linear)
         .then((value) {
       direction = direction == max ? min : max;
       animateToMaxMin(max, min, direction, seconds, scrollController);
@@ -105,7 +107,7 @@ class _ManualScreenState extends State<ManualScreen> {
     if (widget.device?.isConnected ?? false) {
       print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
       List<BluetoothService>? services =
-          await widget.device?.discoverServices();
+      await widget.device?.discoverServices();
       /*  widget.targetCharacterstic?.setNotifyValue(true);
       widget.targetCharacterstic?.lastValueStream.listen((value) {
         print("stringValue11  $value");
@@ -163,11 +165,13 @@ class _ManualScreenState extends State<ManualScreen> {
 
   @override
   Widget build(BuildContext context) {
-    Size size = MediaQuery.of(context).size;
+    Size size = MediaQuery
+        .of(context)
+        .size;
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.black,
-         bottomNavigationBar: LogWidget(
+        bottomNavigationBar: LogWidget(
           size: size,
           logData: dataa,
           scrollController: _scrollController1,
@@ -180,7 +184,7 @@ class _ManualScreenState extends State<ManualScreen> {
                 Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(builder: (context) => BluetoothScreen()),
-                    (route) => false);
+                        (route) => false);
                 AppUtils.showflushBar(
                     "Device Disconnected SuccessFully", context);
               },
@@ -202,10 +206,11 @@ class _ManualScreenState extends State<ManualScreen> {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => AutomaticScreen(
-                        logList: dataa,
-                        device: widget.device,
-                      ),
+                      builder: (context) =>
+                          AutomaticScreen(
+                            logList: dataa,
+                            device: widget.device,
+                          ),
                     ),
                   ); // Your state change code here
                 });
@@ -249,11 +254,12 @@ class _ManualScreenState extends State<ManualScreen> {
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => AutomaticScreen(
-                                  logList: dataa,
-                                  device: widget.device,
-                                  //targetCharacterstic: targetCharacterstic,
-                                ),
+                                builder: (context) =>
+                                    AutomaticScreen(
+                                      logList: dataa,
+                                      device: widget.device,
+                                      //targetCharacterstic: targetCharacterstic,
+                                    ),
                               ),
                             ); //
                             ();
@@ -267,7 +273,7 @@ class _ManualScreenState extends State<ManualScreen> {
                               context);
                         }
                       },
-                      title: 'Automatic Mode ',height:0.07 ),
+                      title: 'Automatic Mode ', height: 0.07),
                 ],
               ),
             ),
@@ -463,7 +469,7 @@ class _ManualScreenState extends State<ManualScreen> {
                             }
                           },
                           title: 'Calibration '),
-                      ButtonWidget(height:0.07,
+                      ButtonWidget(height: 0.07,
                           color: const Color(0xFFee7d31),
                           onPressed: () async {
                             if (widget.device?.isConnected ?? false) {
@@ -494,7 +500,7 @@ class _ManualScreenState extends State<ManualScreen> {
               height: size.height * 0.01,
               color: Colors.white,
             ),
-           /* Container(
+            /* Container(
               padding: EdgeInsets.only(
                   top: size.height * 0.01, left: size.width * 0.03),
               color: Colors.black,
@@ -517,7 +523,7 @@ class _ManualScreenState extends State<ManualScreen> {
                       );
                     }),
               ),
-              *//* child: SingleChildScrollView(
+              */ /* child: SingleChildScrollView(
         child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: List.generate(logData.length, (index) {
@@ -528,7 +534,7 @@ class _ManualScreenState extends State<ManualScreen> {
           );
         }),
         ),
-      ),*//*
+      ),*/ /*
             )*/
             //  SizedBox(height: size.height*0.02,),
           ],
