@@ -14,8 +14,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'home_screen.dart';
 
 class BluetoothScreen extends StatefulWidget {
-  const BluetoothScreen({super.key});
-
   @override
   _BluetoothScreenState createState() => _BluetoothScreenState();
 }
@@ -30,7 +28,8 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
   @override
   void initState() {
     super.initState();
-  }
+  } ValueNotifier<List<LogDataTime>> logDataListNotifier = ValueNotifier<List<LogDataTime>>([]);
+
 
   int counter = 10;
   //late Timer _timer;
@@ -349,6 +348,10 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
       dataa.add(LogDataTime(title: stringValue,
         //time: formattedDate
       ));
+      logDataListNotifier.value.add(LogDataTime(
+        title: stringValue,
+      ));
+      logDataListNotifier.notifyListeners();
       if(mounted){
         // if (stringValue=="manual") {
         if (stringValue.contains("manual")) {
@@ -356,7 +359,8 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
               context,
               MaterialPageRoute(
                 builder: (context) => ManualScreen(
-                  device: connectedDevice,
+
+                  device: connectedDevice,logList: dataa,
                 ),
               ),
                   (route) => false);
@@ -367,6 +371,7 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
               context,
               MaterialPageRoute(
                   builder: (context) => ManualScreen(
+                    logList: dataa,
                     device: connectedDevice,
                   )),
                   (route) => false);

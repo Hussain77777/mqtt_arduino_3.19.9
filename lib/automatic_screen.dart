@@ -125,6 +125,7 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
         bottomNavigationBar: LogWidgetForAutomaticMode(
           logData: dataa,
           size: size,scrollController: _scrollController1,
+          logDataNotifier: ValueNotifier<List<LogDataTime>>(dataa),
         ),
         appBar: AppBar(
           backgroundColor: Colors.blue,
@@ -135,7 +136,7 @@ class _AutomaticScreenState extends State<AutomaticScreen> {
                       context,
                       MaterialPageRoute(
                           builder: (context) => ManualScreen(
-                                logList: dataa,
+                               logList: dataa,
                                 device: widget.device,
                                 targetCharacterstic: targetCharacterstic,
                               ))); // Your state change code here
@@ -310,6 +311,79 @@ class LogWidget extends StatefulWidget {
   const LogWidget({
     Key? key,
     required this.size,
+    required this.logDataNotifier, // Updated to ValueNotifier
+    this.scrollController,
+  }) : super(key: key);
+
+  final ScrollController? scrollController;
+  final Size size;
+  final ValueNotifier<List<LogDataTime>> logDataNotifier; // Use ValueNotifier here
+
+  @override
+  _LogWidgetState createState() => _LogWidgetState();
+}
+class _LogWidgetState extends State<LogWidget> {
+  late ScrollController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = widget.scrollController ?? ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.only(
+        top: widget.size.height * 0.01,
+        left: widget.size.width * 0.03,
+      ),
+      color: Colors.black,
+      width: widget.size.width,
+      height: widget.size.height * 0.18,
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: ValueListenableBuilder<List<LogDataTime>>(
+          valueListenable: widget.logDataNotifier,
+          builder: (context, logData, child) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (_controller.hasClients) {
+                _controller.animateTo(
+                  _controller.position.maxScrollExtent,
+                  duration: Duration(milliseconds: 500),
+                  curve: Curves.easeOut,
+                );
+              }
+            });
+            return ListView.builder(
+              controller: _controller,
+              shrinkWrap: true,
+              itemCount: logData.length,
+              itemBuilder: (context, index) {
+                return Text(
+                  logData[index].title,
+                  style: const TextStyle(color: Colors.white),
+                );
+              },
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+/*
+class LogWidget extends StatefulWidget {
+  const LogWidget({
+    Key? key,
+    required this.size,
     required this.logData,
     this.scrollController,
   }) : super(key: key);
@@ -363,7 +437,7 @@ class _LogWidgetState extends State<LogWidget> {
         alignment: Alignment.topCenter,
         child: ListView.builder(
           controller: _controller,
-          reverse: true,
+         // reverse: true,
           shrinkWrap: true,
           itemCount: widget.logData.length,
           itemBuilder: (context, index) {
@@ -377,57 +451,18 @@ class _LogWidgetState extends State<LogWidget> {
     );
   }
 }
-/*
-class LogWidget extends StatelessWidget {
-  const LogWidget({
-    super.key,
-    required this.size,
-    required this.logData,
-    this.scrollController,
-  });
+*/
 
-  final ScrollController? scrollController;
-  final Size size;
-  final List<LogDataTime> logData;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding:
-          EdgeInsets.only(top: size.height * 0.01, left: size.width * 0.03),
-      color: Colors.black,
-      width: size.width,
-      height: size.height * 0.18,
-
-      child: Align(
-        alignment: Alignment.topCenter,
-        child: ListView.builder(
-            controller: scrollController,
-          //  reverse: true,
-            shrinkWrap: true,
-            itemCount: logData.length,
-            itemBuilder: (context, index) {
-              return Text(
-
-                logData[index].title,
-                style: const TextStyle(color: Colors.white),
-              );
-            }),
-      ),
-
-    );
-  }
-}*/
 class LogWidgetForAutomaticMode extends StatefulWidget {
   const LogWidgetForAutomaticMode({
     super.key,
     required this.size,
-    required this.logData, this.scrollController,
+    required this.logData, this.scrollController, required this.logDataNotifier,
   });
   final ScrollController? scrollController;
   final Size size;
   final List<LogDataTime> logData;
-
+  final ValueNotifier<List<LogDataTime>> logDataNotifier;
   @override
   State<LogWidgetForAutomaticMode> createState() => _LogWidgetForAutomaticModeState();
 }
@@ -470,17 +505,30 @@ class _LogWidgetForAutomaticModeState extends State<LogWidgetForAutomaticMode> {
       height: widget.size.height * 0.58,
 
       // margin: EdgeInsets.only(left: size.width*0.1,right: size.width*0.1,),
-      child: Align(
+      child:  Align(
         alignment: Alignment.topCenter,
-        child: ListView.builder(
-          controller: _controller,
-          reverse: true,
-          shrinkWrap: true,
-          itemCount: widget.logData.length,
-          itemBuilder: (context, index) {
-            return Text(
-              widget.logData[index].title,
-              style: const TextStyle(color: Colors.white),
+        child: ValueListenableBuilder<List<LogDataTime>>(
+          valueListenable: widget.logDataNotifier,
+          builder: (context, logData, child) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (_controller.hasClients) {
+                _controller.animateTo(
+                  _controller.position.maxScrollExtent,
+                  duration: Duration(milliseconds: 500),
+                  curve: Curves.easeOut,
+                );
+              }
+            });
+            return ListView.builder(
+              controller: _controller,
+              shrinkWrap: true,
+              itemCount: logData.length,
+              itemBuilder: (context, index) {
+                return Text(
+                  logData[index].title,
+                  style: const TextStyle(color: Colors.white),
+                );
+              },
             );
           },
         ),

@@ -23,8 +23,8 @@ class ManualScreen extends StatefulWidget {
 
   final BluetoothDevice? device;
   BluetoothCharacteristic? targetCharacterstic;
+  //final ValueNotifier<List<LogDataTime>>? logList; // Updated to ValueNotifier
   final List<LogDataTime>? logList;
-
   @override
   State<ManualScreen> createState() => _ManualScreenState();
 }
@@ -35,6 +35,8 @@ class _ManualScreenState extends State<ManualScreen> {
   TextEditingController controller = TextEditingController();
   BluetoothCharacteristic? targetCharacterstic11;
   bool isLoading = false;
+  List<String> usrList = [];
+  ValueNotifier<List<LogDataTime>> logDataListNotifier = ValueNotifier<List<LogDataTime>>([]);
 
   List<DataModel> a = [];
   List<String> logData = [];
@@ -53,7 +55,8 @@ class _ManualScreenState extends State<ManualScreen> {
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) => BluetoothScreen()),
-                (route) => false,);
+            (route) => false,
+          );
 
           //   widget.device?.connect();
           AppUtils.showflushBar(
@@ -67,27 +70,19 @@ class _ManualScreenState extends State<ManualScreen> {
 
   @override
   void initState() {
+    print("widget.logList?.length ${widget.logList?.length}");
+   // _controller = widget.scrollController ?? ScrollController();
     // widget.logList?.removeLast();
     widget.logList?.forEach((element) {
-      dataa.add(element);
+     dataa.add(element);
+      logDataListNotifier.value.add(element);
     });
-
-    //   logData = widget.logList ?? [];
+    logDataListNotifier.notifyListeners();
+  /*  logDataListNotifier.value.add(widget.logList);*/
     checkDeviceStatus();
     logListener();
 
     super.initState();
-  }
-
-  animateToMaxMin(double max, double min, double direction, int seconds,
-      ScrollController scrollController) {
-    scrollController
-        .animateTo(direction,
-        duration: Duration(seconds: seconds), curve: Curves.linear)
-        .then((value) {
-      direction = direction == max ? min : max;
-      animateToMaxMin(max, min, direction, seconds, scrollController);
-    });
   }
 
   BluetoothCharacteristic? targetCharacterstic;
@@ -98,7 +93,7 @@ class _ManualScreenState extends State<ManualScreen> {
     if (widget.device?.isConnected ?? false) {
       print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
       List<BluetoothService>? services =
-      await widget.device?.discoverServices();
+          await widget.device?.discoverServices();
 
       services?.forEach((service) async {
         if (kDebugMode) {
@@ -139,7 +134,6 @@ class _ManualScreenState extends State<ManualScreen> {
 
   @override
   void dispose() {
-
     print("sd fmsdf sdfsdf");
 
     // TODO: implement dispose
@@ -148,15 +142,13 @@ class _ManualScreenState extends State<ManualScreen> {
 
   @override
   Widget build(BuildContext context) {
-    Size size = MediaQuery
-        .of(context)
-        .size;
+    Size size = MediaQuery.of(context).size;
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.black,
-        bottomNavigationBar: LogWidget(
+        bottomNavigationBar:LogWidget(
           size: size,
-          logData: dataa,
+          logDataNotifier: ValueNotifier<List<LogDataTime>>(dataa), // Wrap with ValueNotifier
           scrollController: _scrollController1,
         ),
         appBar: AppBar(
@@ -167,7 +159,7 @@ class _ManualScreenState extends State<ManualScreen> {
                 Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(builder: (context) => BluetoothScreen()),
-                        (route) => false);
+                    (route) => false);
                 AppUtils.showflushBar(
                     "Device Disconnected SuccessFully", context);
               },
@@ -189,11 +181,10 @@ class _ManualScreenState extends State<ManualScreen> {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (context) =>
-                          AutomaticScreen(
-                            logList: dataa,
-                            device: widget.device,
-                          ),
+                      builder: (context) => AutomaticScreen(
+                        logList: dataa,
+                        device: widget.device,
+                      ),
                     ),
                   ); // Your state change code here
                 });
@@ -239,12 +230,11 @@ class _ManualScreenState extends State<ManualScreen> {
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                builder: (context) =>
-                                    AutomaticScreen(
-                                      logList: dataa,
-                                      device: widget.device,
-                                      //targetCharacterstic: targetCharacterstic,
-                                    ),
+                                builder: (context) => AutomaticScreen(
+                                  logList: dataa,
+                                  device: widget.device,
+                                  //targetCharacterstic: targetCharacterstic,
+                                ),
                               ),
                             ); //
                             ();
@@ -258,7 +248,8 @@ class _ManualScreenState extends State<ManualScreen> {
                               context);
                         }
                       },
-                      title: 'Automatic Mode ', height: 0.07),
+                      title: 'Automatic Mode ',
+                      height: 0.07),
                 ],
               ),
             ),
@@ -454,7 +445,8 @@ class _ManualScreenState extends State<ManualScreen> {
                             }
                           },
                           title: 'Calibration '),
-                      ButtonWidget(height: 0.07,
+                      ButtonWidget(
+                          height: 0.07,
                           color: const Color(0xFFee7d31),
                           onPressed: () async {
                             if (widget.device?.isConnected ?? false) {
@@ -528,9 +520,7 @@ class _ManualScreenState extends State<ManualScreen> {
     );
   }
 
-  List<String> usrList = [];
-
-  Future<StreamSubscription<List<int>>?> buildLogListener() async {
+ Future<StreamSubscription<List<int>>?> buildLogListener() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return targetCharacterstic?.lastValueStream.listen((value) {
       print("stringValue  $value");
@@ -544,6 +534,10 @@ class _ManualScreenState extends State<ManualScreen> {
         dataa.add(LogDataTime(
           title: stringValue,
         ));
+        logDataListNotifier.value.add(LogDataTime(
+          title: stringValue,
+        ));
+        logDataListNotifier.notifyListeners();
         if (usrList.length > 100) {
           prefs.clear();
         }

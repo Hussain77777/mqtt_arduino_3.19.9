@@ -40,7 +40,7 @@ class _MyAppState extends State<MyApp> {
         useMaterial3: true,
       ),
 
-    home: BluetoothScreen(),
+    home:  BluetoothScreen(),
     // home: const ScrollScreen(),
     );
   }
