@@ -25,13 +25,17 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
   BluetoothCharacteristic? targetCharacterstic;
   bool isScanning = false;
   List<LogDataTime> dataa = [];
+
   @override
   void initState() {
     super.initState();
-  } ValueNotifier<List<LogDataTime>> logDataListNotifier = ValueNotifier<List<LogDataTime>>([]);
+  }
 
+  ValueNotifier<List<LogDataTime>> logDataListNotifier =
+      ValueNotifier<List<LogDataTime>>([]);
 
   int counter = 10;
+
   //late Timer _timer;
 
   double percentValue = 1;
@@ -127,7 +131,7 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
   @override
   void dispose() {
     FlutterBluePlus.stopScan();
-  //  _timer.cancel();
+    //  _timer.cancel();
     super.dispose();
   }
 
@@ -137,7 +141,7 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.black,
-   //     bottomNavigationBar: LogWidgetForBluetoothScreen(size: size, logData: dataa),
+        //     bottomNavigationBar: LogWidgetForBluetoothScreen(size: size, logData: dataa),
         appBar: AppBar(
           leading: !isScanning
               ? Container()
@@ -261,7 +265,7 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
                               if (state == BluetoothConnectionState.connected) {
                                 print("inside connected ");
                                 logListener();
-                           //     startTimer();
+                                //     startTimer();
                                 /*    Navigator.pushReplacement(
                                   context,
                                   MaterialPageRoute(
@@ -270,11 +274,12 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
                                     ),
                                   ),
                                 );*/
-                                if(mounted) {
+                                if (mounted) {
                                   AppUtils.showflushBar(
-                                    "Device Connected Successfully with ${connectedDevice?.platformName}",
-                                    context);
-                                }}
+                                      "Device Connected Successfully with ${connectedDevice?.platformName}",
+                                      context);
+                                }
+                              }
                             });
                           },
                           child: Text(
@@ -341,29 +346,30 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
 
       String? stringValue = utf8.decode(value);
       print("stringValue  $stringValue");
-    /*  if (mounted) {
+      /*  if (mounted) {
         AppUtils.showflushBar(
             stringValue.isNotEmpty ? stringValue : "Empty", context);
       }*/
-      dataa.add(LogDataTime(title: stringValue,
+      dataa.add(LogDataTime(
+        title: stringValue,
         //time: formattedDate
       ));
       logDataListNotifier.value.add(LogDataTime(
         title: stringValue,
       ));
       logDataListNotifier.notifyListeners();
-      if(mounted){
+      if (mounted) {
         // if (stringValue=="manual") {
         if (stringValue.contains("manual")) {
           Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(
                 builder: (context) => ManualScreen(
-
-                  device: connectedDevice,logList: dataa,
+                  device: connectedDevice,
+                  logList: dataa,
                 ),
               ),
-                  (route) => false);
+              (route) => false);
         }
         //    if (stringValue=="auto") {
         if (stringValue.contains("auto")) {
@@ -371,12 +377,12 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
               context,
               MaterialPageRoute(
                   builder: (context) => ManualScreen(
-                    logList: dataa,
-                    device: connectedDevice,
-                  )),
-                  (route) => false);
+                        logList: dataa,
+                        device: connectedDevice,
+                      )),
+              (route) => false);
         }
-       /* setState(() {
+        /* setState(() {
 
         });*/
       }
